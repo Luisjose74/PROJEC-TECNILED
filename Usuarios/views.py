@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login , logout
 
 def inicio(request):
-    return HttpResponse("Hello world!")
+    return render(request, 'inicio.html')
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -20,3 +20,7 @@ def login_view(request):
         error = "Credenciales incorrectas"
 
     return render(request, 'login.html', {'error': error})
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
