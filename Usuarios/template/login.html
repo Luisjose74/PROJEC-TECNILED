@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar sesión - TECNILED{% endblock %}
+{% block content %}
+<div class="min-h-[calc(100vh-80px)] flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+    <div class="p-8">
+      <a href="{% url 'inicio' %}" class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[#F2AE30] dark:text-gray-400 mb-6 transition-colors">
+        ← Volver al inicio
+      </a>
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Bienvenido de nuevo</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Inicia sesión para acceder a tu cuenta.</p>
+      </div>
+
+      {% if error %}
+      <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium rounded-xl text-center">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Correo electrónico</label>
+          <input required type="email" name="correo" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F2AE30]" placeholder="tu@correo.com">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contraseña</label>
+          <input required type="password" name="contrasena" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F2AE30]" placeholder="••••••••">
+        </div>
+        <div class="flex items-center justify-between mt-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 text-[#F2AE30] rounded border-gray-300 focus:ring-[#F2AE30]">
+            <span class="text-sm text-gray-600 dark:text-gray-400">Recordarme</span>
+          </label>
+          <a href="#" class="text-sm font-semibold text-[#F2AE30] hover:text-[#d99b28] hover:underline transition-colors">¿Olvidaste tu contraseña?</a>
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-[#F2AE30] hover:bg-[#d99b28] text-black font-bold rounded-xl transition-colors shadow-lg mt-6 flex items-center justify-center gap-2">
+          Iniciar sesión
+        </button>
+      </form>
+
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          ¿No tienes una cuenta? <a href="#" class="font-bold text-[#F2AE30] hover:text-[#d99b28] hover:underline">Crear cuenta</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
