@@ -55,7 +55,7 @@ ROOT_URLCONF = 'TECNILED.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'template', BASE_DIR / 'Usuarios' / 'template'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -97,6 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'Usuarios.validators.ComplexPasswordValidator',
+    },
 ]
 
 
@@ -126,3 +129,9 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+AUTHENTICATION_BACKENDS = [
+    'Usuarios.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
