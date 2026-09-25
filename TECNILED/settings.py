@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Usuarios',
+    'productos',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 AUTH_USER_MODEL = 'Usuarios.Usuario'
+
+# Archivos subidos por los usuarios (imágenes de productos)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
