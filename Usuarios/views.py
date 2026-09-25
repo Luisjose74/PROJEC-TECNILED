@@ -1,9 +1,16 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login , logout
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Q
+from django.core.paginator import Paginator
+
+from .models import Usuario
+
 
 def inicio(request):
     return render(request, 'inicio.html')
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -21,6 +28,30 @@ def login_view(request):
 
     return render(request, 'login.html', {'error': error})
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+def usuarios_lista(request):
+    query = request.GET.get('q', '').strip()
+
+    usuarios = Usuario.objects.all().order_by('first_name', 'last_name')
+    if query:
+        usuarios = usuarios.filter(
+            Q(first_name__icontains=query)
+            | Q(last_name__icontains=query)
+            | Q(email__icontains=query)
+            | Q(documento__icontains=query)
+        )
+
+    paginador = Paginator(usuarios, 10)
+    pagina = paginador.get_page(request.GET.get('page'))
+
+    return render(request, 'usuarios_lista.html', {
+        'usuarios': pagina,
+        'query': query,
+    })
