@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
@@ -6,7 +7,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 
 from .models import Usuario
-
+from .forms import CrearUsuarioInternoForm
 
 def inicio(request):
     return render(request, 'inicio.html')
@@ -55,3 +56,17 @@ def usuarios_lista(request):
         'usuarios': pagina,
         'query': query,
     })
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+def crear_usuario(request):
+    if request.method == 'POST':
+        form = CrearUsuarioInternoForm(request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            messages.success(request, f'Cuenta creada para {usuario.email}.')
+            return redirect('usuarios_lista')
+    else:
+        form = CrearUsuarioInternoForm()
+
+    return render(request, 'usuarios_crear.html', {'form': form})
