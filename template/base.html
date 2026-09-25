@@ -14,7 +14,18 @@
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-  {% include 'partiarls/header.html' %}
+    {% include 'partiarls/header.html' %}
+
+  {% if messages %}
+  <div class="max-w-6xl mx-auto px-4 sm:px-8 pt-4 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium rounded-xl text-center">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {% block content %}{% endblock %}
 </body>
 </html>
