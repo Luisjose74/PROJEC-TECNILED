@@ -18,10 +18,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from django.views.generic import TemplateView  # PRUEBA
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('productos/prueba/', TemplateView.as_view(template_name='prueba_admin.html')),  # PRUEBA
     path('', include('Usuarios.urls')),
     path('', include('productos.urls')),
 ]
