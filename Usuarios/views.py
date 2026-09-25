@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 
 from .models import Usuario
-from .forms import CrearUsuarioInternoForm
+from .forms import CrearUsuarioInternoForm, EditarRolForm
+from django.shortcuts import get_object_or_404
 
 def inicio(request):
     return render(request, 'inicio.html')
@@ -70,3 +71,23 @@ def crear_usuario(request):
         form = CrearUsuarioInternoForm()
 
     return render(request, 'usuarios_crear.html', {'form': form})
+
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+def editar_rol(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+
+    if request.method == 'POST':
+        form = EditarRolForm(request.POST, instance=usuario)
+        if form.is_valid():
+            if usuario == request.user and form.cleaned_data['rol'] != Usuario.Rol.ADMINISTRADOR:
+                form.add_error('rol', 'No puedes quitarte tu propio rol de administrador.')
+            else:
+                form.save()
+                messages.success(request, f'Rol de {usuario.email} actualizado.')
+                return redirect('usuarios_lista')
+    else:
+        form = EditarRolForm(instance=usuario)
+
+    return render(request, 'usuarios_editar_rol.html', {'form': form, 'usuario': usuario})

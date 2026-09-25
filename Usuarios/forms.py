@@ -32,3 +32,13 @@ class CrearUsuarioInternoForm(forms.ModelForm):
         if commit:
             usuario.save()
         return usuario
+class EditarRolForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['rol', 'estado_cuenta']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        clase_input = 'w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F2AE30] outline-none'
+        for campo in self.fields.values():
+            campo.widget.attrs['class'] = clase_input
