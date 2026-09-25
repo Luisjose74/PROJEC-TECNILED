@@ -1,0 +1,96 @@
+/* =========================================================
+   ESTILOS PROPIOS DE TECNILED
+   Casi todo el diseño se hace con clases de Tailwind en el HTML.
+   Aquí solo va lo que Tailwind (por CDN) no hace fácil.
+   ========================================================= */
+
+/* Scroll suave al tocar enlaces como #ofertas o #contacto */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Color de la selección de texto (amarillo TECNILED) */
+::selection {
+  background: #F2AE30;
+  color: #000;
+}
+
+/* ---------- Cuadrícula de fondo del hero ---------- */
+.fondo-cuadricula {
+  background-image:
+    linear-gradient(to right, #80808012 1px, transparent 1px),
+    linear-gradient(to bottom, #80808012 1px, transparent 1px);
+  background-size: 24px 24px;
+  /* La máscara hace que la cuadrícula se desvanezca hacia abajo */
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
+}
+
+/* ---------- Animación de entrada del hero (al cargar la página) ---------- */
+@keyframes subir-aparecer {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes zoom-aparecer {
+  from { opacity: 0; transform: scale(0.9) rotate(2deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+.aparecer-inicio { animation: subir-aparecer 0.5s ease-out both; }
+.aparecer-imagen { animation: zoom-aparecer 0.8s ease-out 0.2s both; }
+/* Retrasos para que los textos salgan uno detrás de otro */
+.retraso-1 { animation-delay: 0.1s; }
+.retraso-2 { animation-delay: 0.2s; }
+.retraso-3 { animation-delay: 0.3s; }
+.retraso-4 { animation-delay: 0.4s; }
+
+/* ---------- Animación al hacer scroll ----------
+   main.js agrega la clase "visible" cuando el elemento entra en pantalla.
+   Solo se esconde si JavaScript está activo (clase "js" en <html>),
+   así, si JS falla, el contenido se sigue viendo. */
+.js [data-aparecer] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out, box-shadow 0.3s;
+}
+.js [data-aparecer].visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Tarjetas que "suben" 4px al pasar el mouse (productos y servicios) */
+.levantar:hover,
+.js .levantar.visible:hover {
+  transform: translateY(-4px);
+}
+
+/* ---------- Carrito lateral abierto ---------- */
+#carrito.abierto {
+  transform: translateX(0);
+}
+
+/* ---------- Mensajes flotantes de Django ---------- */
+.mensaje-flotante {
+  animation: subir-aparecer 0.3s ease-out both;
+}
+
+/* ---------- Alto contraste (botón de accesibilidad) ---------- */
+html.alto-contraste {
+  filter: contrast(1.35);
+}
+html.alto-contraste a,
+html.alto-contraste button {
+  text-decoration-thickness: 2px;
+}
+html.alto-contraste :focus-visible {
+  outline: 3px solid #F2AE30;
+  outline-offset: 2px;
+}
+
+/* ---------- Personas que prefieren menos movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js [data-aparecer] { opacity: 1; transform: none; }
+}
