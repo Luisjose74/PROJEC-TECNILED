@@ -9,23 +9,56 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' }
+
+    // Indica que hay JavaScript (style.css lo usa para las animaciones de scroll).
+    // Va aquí arriba para que las secciones no "parpadeen" al cargar.
+    document.documentElement.classList.add('js');
+
+    // Se aplica ANTES de pintar la página para que no "parpadee".
+    // Usa la misma clave "theme" que base_admin.html, así el modo se comparte
+    // entre la tienda y el panel.
+    var temaGuardado = localStorage.getItem('theme');
+    var sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (temaGuardado === 'dark' || (temaGuardado === null && sistemaOscuro)) {
+      document.documentElement.classList.add('dark');
+    }
+    // Opciones de accesibilidad guardadas (tamaño de letra y alto contraste)
+    if (localStorage.getItem('fontSize')) {
+      document.documentElement.style.fontSize = localStorage.getItem('fontSize') + '%';
+    }
+    if (localStorage.getItem('contraste') === 'alto') {
+      document.documentElement.classList.add('alto-contraste');
+    }
   </script>
 
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-    {% include 'partiarls/header.html' %}
+<body class="font-sans antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen flex flex-col transition-colors">
 
+  {% include 'partiarls/header.html' %}
+
+  <!-- Mensajes de Django: aparecen flotando arriba a la derecha y se ocultan solos -->
   {% if messages %}
-  <div class="max-w-6xl mx-auto px-4 sm:px-8 pt-4 space-y-2">
+  <div class="fixed top-24 right-4 z-[60] space-y-2 w-[calc(100%-2rem)] max-w-sm">
     {% for message in messages %}
-    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium rounded-xl text-center">
-      {{ message }}
+    <div class="mensaje-flotante flex items-start gap-3 p-4 rounded-xl shadow-lg text-sm font-medium border
+      {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800
+      {% else %}bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800{% endif %}">
+      <span class="flex-1">{{ message }}</span>
+      <button type="button" onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100" aria-label="Cerrar mensaje">✕</button>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  {% block content %}{% endblock %}
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partiarls/footer.html' %}
+  {% include 'partiarls/accesibilidad.html' %}
+  {% include 'partiarls/carrito.html' %}
+
+  <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>
