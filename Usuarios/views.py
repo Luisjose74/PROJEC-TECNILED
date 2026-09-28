@@ -9,9 +9,17 @@ from django.core.paginator import Paginator
 from .models import Usuario
 from .forms import CrearUsuarioInternoForm, EditarRolForm
 from django.shortcuts import get_object_or_404
+from productos.models import Producto  # NUEVO: para mostrar productos en el inicio
+
 
 def inicio(request):
-    return render(request, 'inicio.html')
+    # NUEVO: productos que el administrador marcó como "Destacado en Inicio" (máximo 4)
+    productos_destacados = Producto.objects.filter(
+        activo=True, destacado_en_inicio=True
+    )[:4]
+    return render(request, 'inicio.html', {
+        'productos_destacados': productos_destacados,
+    })
 
 
 def login_view(request):
@@ -57,6 +65,7 @@ def usuarios_lista(request):
         'usuarios': pagina,
         'query': query,
     })
+
 
 @login_required
 @permission_required('Usuarios.gestionar_usuarios', raise_exception=True)

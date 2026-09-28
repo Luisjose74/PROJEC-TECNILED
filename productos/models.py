@@ -31,6 +31,11 @@ class Producto(models.Model):
     # --- Contenido ---
     descripcion = models.TextField('Descripción Corta')
     instalacion = models.TextField('Uso e Instalación')
+    
+    especificaciones = models.TextField(
+        'Características Técnicas', blank=True,
+        help_text='Una característica por línea. Ejemplo: Potencia: 20W',
+    )
 
     # --- Estado / catálogo (usados por otros tickets del equipo: activar/desactivar, destacar) ---
     activo = models.BooleanField('Activo', default=True)
@@ -46,6 +51,27 @@ class Producto(models.Model):
 
     def __str__(self):
         return f'{self.sku} - {self.nombre}'
+        
+    def porcentaje_descuento(self):
+        """Devuelve el % de descuento (ej: 23) o 0 si no tiene oferta."""
+        if self.precio_oferta and self.precio:
+            descuento = (self.precio - self.precio_oferta) / self.precio * 100
+            return round(descuento)
+        return 0
+    
+    def lista_especificaciones(self):
+        """Convierte el texto de especificaciones en una lista de (nombre, valor)."""
+        lista = []
+        for linea in self.especificaciones.splitlines():
+            linea = linea.strip()
+            if linea == '':
+                continue  # se saltan las líneas vacías
+            if ':' in linea:
+                nombre, valor = linea.split(':', 1)
+                lista.append((nombre.strip(), valor.strip()))
+            else:
+                lista.append(('', linea))
+        return lista
 
     def clean(self):
         # Regla de negocio: si hay precio de oferta, debe ser menor al precio normal
