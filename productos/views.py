@@ -70,3 +70,21 @@ def alternar_destacado(request, producto_id):
     if not url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
         siguiente = reverse('productos_lista')
     return redirect(siguiente)
+
+
+def producto_detalle(request, producto_id):
+    # Página pública: la ve cualquier cliente, por eso NO lleva @login_required
+
+    # 1) Buscar el producto que el usuario quiere ver
+    producto = get_object_or_404(Producto, pk=producto_id, activo=True)
+
+    # 2) Buscar productos relacionados (misma categoría, sin repetir este, máximo 2)
+    relacionados = Producto.objects.filter(
+        categoria=producto.categoria, activo=True
+    ).exclude(pk=producto.pk)[:2]
+
+    # 3) Enviar las dos cosas a la plantilla
+    return render(request, 'productos/producto_detalle.html', {
+        'producto': producto,
+        'relacionados': relacionados,
+    })
