@@ -1,4 +1,451 @@
 {% extends 'base.html' %}
+{% block title %}TECNILED | Iluminación LED{% endblock %}
+
 {% block content %}
-<p class="p-4 text-gray-900 dark:text-white">Hello world!</p>
+<!--
+  PÁGINA PRINCIPAL (solo diseño visual, sin integración)
+  Secciones: 1. Hero  2. Ofertas  3. Beneficios  4. Contacto  5. Servicios
+  - data-aparecer  → la sección entra con animación al hacer scroll (main.js)
+  - data-contador  → el número sube desde 0 hasta ese valor (main.js)
+-->
+
+<!-- ===================== 1. HERO ===================== -->
+<section class="relative pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden bg-white dark:bg-gray-950 transition-colors">
+  <!-- Cuadrícula de fondo decorativa (la clase está en style.css) -->
+  <div class="fondo-cuadricula absolute inset-0"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+
+      <!-- Texto -->
+      <div class="text-center lg:text-left">
+        <div class="aparecer-inicio inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F2AE30]/10 text-[#F2AE30] font-semibold text-sm mb-6">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          Expertos en Iluminación
+        </div>
+
+        <h1 class="aparecer-inicio retraso-1 text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight mb-8 leading-[1.1]">
+          Ilumina tu mundo con <span class="text-[#F2AE30]">tecnología LED</span>
+        </h1>
+
+        <p class="aparecer-inicio retraso-2 text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          En TECNILED ofrecemos las mejores soluciones de iluminación para interiores, exteriores y productos industriales.
+        </p>
+
+        <div class="aparecer-inicio retraso-3 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+          <a href="#ofertas" class="w-full sm:w-auto px-8 py-4 bg-sky-400 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-400/30 hover:shadow-sky-400/50 hover:-translate-y-0.5 flex items-center justify-center gap-2">
+            Explorar productos
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          {% if not user.is_authenticated %}
+          <a href="{% url 'login' %}" class="w-full sm:w-auto px-8 py-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-xl transition-all flex items-center justify-center">
+            Crear cuenta
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- Cifras (valores de ejemplo) -->
+        <div class="aparecer-inicio retraso-4 mt-12 flex items-center justify-center lg:justify-start gap-8 border-t border-gray-200 dark:border-gray-800 pt-8">
+          <a href="#ofertas" class="flex flex-col items-center lg:items-start gap-1 hover:opacity-80 transition-opacity">
+            <span class="text-3xl font-black text-gray-900 dark:text-white"><span data-contador="20">0</span>+</span>
+            <span class="text-sm font-medium text-[#F2AE30]">Productos disponibles</span>
+          </a>
+          <div class="w-px h-12 bg-gray-200 dark:bg-gray-800"></div>
+          <a href="#beneficios" class="flex flex-col items-center lg:items-start gap-1 hover:opacity-80 transition-opacity">
+            <span class="text-3xl font-black text-gray-900 dark:text-white"><span data-contador="96">0</span>%</span>
+            <span class="text-sm font-medium text-[#F2AE30]">Satisfacción</span>
+          </a>
+          <div class="w-px h-12 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
+          <a href="#contacto" class="hidden sm:flex flex-col items-center lg:items-start gap-1 hover:opacity-80 transition-opacity">
+            <span class="text-3xl font-black text-gray-900 dark:text-white">24/7</span>
+            <span class="text-sm font-medium text-[#F2AE30]">Soporte</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Imagen grande con tarjeta de vidrio encima -->
+      <div class="aparecer-imagen relative mx-auto w-full max-w-lg lg:max-w-none">
+        <div class="absolute inset-0 bg-gradient-to-tr from-[#F2AE30]/20 to-sky-400/20 rounded-3xl blur-3xl -rotate-6 scale-105 opacity-50 dark:opacity-40"></div>
+        <div class="relative rounded-3xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50 shadow-2xl bg-white dark:bg-gray-900 group">
+          <img src="https://images.unsplash.com/photo-1589530006797-d67347f18caa?auto=format&fit=crop&w=1080&q=80"
+               alt="Iluminación LED moderna"
+               class="w-full h-[420px] lg:h-[600px] object-cover transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8">
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-xs text-white">
+              <svg class="w-6 h-6 text-[#F2AE30] mb-3 animate-pulse" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6" fill="none" stroke-width="2"/><path d="M10 22h4" fill="none" stroke-width="2"/></svg>
+              <h3 class="text-lg font-bold mb-1">Ahorro energético</h3>
+              <p class="text-sm text-gray-300">Nuestros sistemas reducen hasta un 80% el consumo eléctrico.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== 2. OFERTAS ===================== -->
+<section id="ofertas" class="py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden scroll-mt-20">
+  <!-- Manchas de luz decorativas -->
+  <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-[#F2AE30]/10 dark:bg-[#F2AE30]/5 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-sky-400/10 dark:bg-sky-400/5 rounded-full blur-[80px] pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div data-aparecer class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+      <div class="max-w-2xl">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F2AE30]/10 text-[#F2AE30] font-semibold text-sm mb-6">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+          Ofertas especiales
+        </div>
+        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+          Precios increíbles por <span class="text-[#F2AE30]">tiempo limitado</span>
+        </h2>
+        <p class="text-xl text-gray-600 dark:text-gray-300">
+          Aprovecha nuestros descuentos en productos seleccionados para renovar la iluminación de tu hogar o empresa.
+        </p>
+      </div>
+      <a href="#" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-semibold rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all shadow-sm group whitespace-nowrap self-start md:self-auto">
+        Ver todos los productos
+        <svg class="w-5 h-5 text-[#F2AE30] group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!--
+      Tarjetas de producto de EJEMPLO (datos escritos a mano).
+      Cuando exista la app de productos, se deja UNA sola tarjeta dentro de
+      un for que recorra los productos en oferta y se borran las demás.
+    -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      <!-- Producto 1 -->
+      <div data-aparecer class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm levantar hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+        <div class="relative aspect-square overflow-hidden cursor-pointer">
+          <img src="https://images.unsplash.com/photo-1762532559973-43ae1018c727?auto=format&fit=crop&w=600&q=80" alt="Lámpara colgante moderna" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-24%</span>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="flex items-center gap-2 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-medium">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver detalles
+            </span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-bold text-[#F2AE30] uppercase tracking-wider">Interiores</span>
+            <span class="flex items-center gap-1 text-sm font-bold text-gray-700 dark:text-gray-300">
+              <svg class="w-4 h-4 text-[#F2AE30]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>
+              5.0
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-[#F2AE30] transition-colors">Lámpara Colgante Moderna</h3>
+          <span class="self-start text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-md mb-4">Disponible</span>
+          <div class="flex items-center justify-between mt-auto">
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-400 line-through">$85.000</span>
+              <span class="text-2xl font-black text-gray-900 dark:text-white">$65.000</span>
+            </div>
+            <button type="button" aria-label="Agregar al carrito" class="p-3 bg-gray-100 hover:bg-[#F2AE30] text-gray-900 hover:text-black dark:bg-gray-800 dark:text-white rounded-xl transition-colors shadow-sm">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 2 -->
+      <div data-aparecer class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm levantar hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+        <div class="relative aspect-square overflow-hidden cursor-pointer">
+          <img src="https://images.unsplash.com/photo-1680992046617-e2e35451bcdb?auto=format&fit=crop&w=600&q=80" alt="Tira LED RGB" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-17%</span>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="flex items-center gap-2 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-medium">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver detalles
+            </span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-bold text-[#F2AE30] uppercase tracking-wider">Interiores</span>
+            <span class="flex items-center gap-1 text-sm font-bold text-gray-700 dark:text-gray-300">
+              <svg class="w-4 h-4 text-[#F2AE30]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>
+              4.8
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-[#F2AE30] transition-colors">Tira LED RGB 5 Metros</h3>
+          <span class="self-start text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-md mb-4">Disponible</span>
+          <div class="flex items-center justify-between mt-auto">
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-400 line-through">$18.000</span>
+              <span class="text-2xl font-black text-gray-900 dark:text-white">$15.000</span>
+            </div>
+            <button type="button" aria-label="Agregar al carrito" class="p-3 bg-gray-100 hover:bg-[#F2AE30] text-gray-900 hover:text-black dark:bg-gray-800 dark:text-white rounded-xl transition-colors shadow-sm">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 3 -->
+      <div data-aparecer class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm levantar hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+        <div class="relative aspect-square overflow-hidden cursor-pointer">
+          <img src="https://images.unsplash.com/photo-1769924107887-7e12b5f60692?auto=format&fit=crop&w=600&q=80" alt="Reflector LED exterior" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-20%</span>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="flex items-center gap-2 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-medium">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver detalles
+            </span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-bold text-[#F2AE30] uppercase tracking-wider">Iluminación</span>
+            <span class="flex items-center gap-1 text-sm font-bold text-gray-700 dark:text-gray-300">
+              <svg class="w-4 h-4 text-[#F2AE30]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>
+              4.8
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-[#F2AE30] transition-colors">Reflector LED Exterior 50W</h3>
+          <span class="self-start text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-md mb-4">Disponible</span>
+          <div class="flex items-center justify-between mt-auto">
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-400 line-through">$35.000</span>
+              <span class="text-2xl font-black text-gray-900 dark:text-white">$28.000</span>
+            </div>
+            <button type="button" aria-label="Agregar al carrito" class="p-3 bg-gray-100 hover:bg-[#F2AE30] text-gray-900 hover:text-black dark:bg-gray-800 dark:text-white rounded-xl transition-colors shadow-sm">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 4 (ejemplo de producto AGOTADO: botón deshabilitado) -->
+      <div data-aparecer class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm levantar hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+        <div class="relative aspect-square overflow-hidden cursor-pointer">
+          <img src="https://images.unsplash.com/photo-1761064039597-908570d50c23?auto=format&fit=crop&w=600&q=80" alt="Interruptor termomagnético" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-23%</span>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="flex items-center gap-2 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-medium">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver detalles
+            </span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-bold text-[#F2AE30] uppercase tracking-wider">Eléctricos</span>
+            <span class="flex items-center gap-1 text-sm font-bold text-gray-700 dark:text-gray-300">
+              <svg class="w-4 h-4 text-[#F2AE30]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>
+              4.5
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-[#F2AE30] transition-colors">Interruptor Termomagnético 20A</h3>
+          <span class="self-start text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 px-2 py-1 rounded-md mb-4">Agotado</span>
+          <div class="flex items-center justify-between mt-auto">
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-400 line-through">$15.500</span>
+              <span class="text-2xl font-black text-gray-900 dark:text-white">$12.000</span>
+            </div>
+            <button type="button" disabled aria-label="Producto agotado" class="p-3 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white rounded-xl shadow-sm opacity-50 cursor-not-allowed">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== 3. BENEFICIOS ===================== -->
+<section id="beneficios" class="py-24 bg-gray-900 text-white relative overflow-hidden scroll-mt-20">
+  <div class="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-[#F2AE30]/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div data-aparecer>
+        <h2 class="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+          ¿Por qué elegir <span class="text-[#F2AE30]">TECNILED</span>?
+        </h2>
+        <p class="text-xl text-gray-400 mb-10 leading-relaxed">
+          No solo vendemos bombillos: te damos soluciones de iluminación que transforman espacios y ahorran energía.
+        </p>
+
+        <!-- Lista de beneficios con check amarillo -->
+        <ul class="grid sm:grid-cols-2 gap-6">
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Ahorro de hasta 80% en consumo eléctrico</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Mayor vida útil en todos los productos LED</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Garantía extendida por 3 años</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Asesoría técnica personalizada gratis</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Envíos a todo el país</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-[#F2AE30] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="text-gray-300 font-medium">Instalación profesional certificada</span>
+          </li>
+        </ul>
+
+        <a href="#contacto" class="inline-block mt-12 px-8 py-4 bg-sky-400 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg hover:-translate-y-0.5 hover:scale-105">
+          Cotizar productos
+        </a>
+      </div>
+
+      <div data-aparecer class="relative">
+        <div class="aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden border border-gray-800 shadow-2xl relative group">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#F2AE30]/20 to-transparent z-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-50"></div>
+          <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1080&q=80" alt="Oficina iluminada con LED"
+               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== 4. CONTACTO ===================== -->
+<section id="contacto" class="py-24 bg-gray-50 dark:bg-gray-800/50 transition-colors scroll-mt-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-16">
+
+      <!-- Datos de contacto (de ejemplo) -->
+      <div data-aparecer>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          Ponte en <span class="text-[#F2AE30]">contacto</span>
+        </h2>
+        <p class="text-lg text-gray-600 dark:text-gray-400 mb-12">
+          ¿Tienes una idea en mente? Escríbenos y uno de nuestros asesores te contactará lo antes posible.
+        </p>
+
+        <div class="space-y-8">
+          <div class="flex items-start gap-4 hover:translate-x-1 transition-transform">
+            <div class="w-12 h-12 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6 text-[#F2AE30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-gray-900 dark:text-white mb-1">Nuestra oficina</h4>
+              <p class="text-gray-600 dark:text-gray-400">Av. Principal 123, Parque Industrial, Ciudad, País</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4 hover:translate-x-1 transition-transform">
+            <div class="w-12 h-12 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6 text-[#F2AE30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-gray-900 dark:text-white mb-1">Llámanos</h4>
+              <p class="text-gray-600 dark:text-gray-400">+57 300 000 0000</p>
+              <p class="text-gray-600 dark:text-gray-400">Lunes a viernes, 8 a.m. - 6 p.m.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4 hover:translate-x-1 transition-transform">
+            <div class="w-12 h-12 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6 text-[#F2AE30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-gray-900 dark:text-white mb-1">Correo electrónico</h4>
+              <p class="text-gray-600 dark:text-gray-400">contacto@tecniled.com</p>
+              <p class="text-gray-600 dark:text-gray-400">ventas@tecniled.com</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!--
+        Formulario de contacto: SOLO VISUAL.
+        onsubmit llama a enviarContactoDemo() (main.js), que muestra un aviso
+        y limpia el formulario. Todavía no guarda nada en la base de datos.
+      -->
+      <div data-aparecer class="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Envíanos un mensaje</h3>
+        <form class="space-y-6" onsubmit="return enviarContactoDemo(this);">
+          <div class="grid sm:grid-cols-2 gap-6">
+            <div>
+              <label for="contacto-nombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nombre</label>
+              <input id="contacto-nombre" required type="text" placeholder="Juan Pérez" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400 dark:text-white transition-all">
+            </div>
+            <div>
+              <label for="contacto-empresa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Empresa</label>
+              <input id="contacto-empresa" type="text" placeholder="Opcional" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400 dark:text-white transition-all">
+            </div>
+          </div>
+          <div>
+            <label for="contacto-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correo</label>
+            <input id="contacto-email" required type="email" placeholder="juan@ejemplo.com" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400 dark:text-white transition-all">
+          </div>
+          <div>
+            <label for="contacto-mensaje" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mensaje</label>
+            <textarea id="contacto-mensaje" required rows="4" placeholder="¿En qué podemos ayudarte?" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400 dark:text-white transition-all resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full py-4 bg-sky-400 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-md text-lg hover:scale-[1.02] active:scale-[0.98]">
+            Enviar mensaje
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== 5. SERVICIOS ===================== -->
+<section id="servicios" class="py-24 bg-white dark:bg-gray-950 transition-colors scroll-mt-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div data-aparecer class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+        Nuestros <span class="text-[#F2AE30]">servicios</span>
+      </h2>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        Ofrecemos soluciones completas en iluminación y electricidad para cualquier necesidad, con calidad y garantía.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Servicio 1 -->
+      <div data-aparecer class="p-8 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 levantar hover:shadow-xl transition-all duration-300">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-sky-500/10">
+          <svg class="w-7 h-7 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Instalación residencial</h3>
+        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Diseñamos e instalamos sistemas de iluminación para hacer tu hogar más acogedor y moderno.</p>
+      </div>
+      <!-- Servicio 2 -->
+      <div data-aparecer class="p-8 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 levantar hover:shadow-xl transition-all duration-300">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[#F2AE30]/10">
+          <svg class="w-7 h-7 text-[#F2AE30]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16h.01"/><path d="M16 16h.01"/><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M8 16h.01"/></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Soluciones industriales</h3>
+        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Productos de alta potencia para bodegas, fábricas y grandes superficies.</p>
+      </div>
+      <!-- Servicio 3 -->
+      <div data-aparecer class="p-8 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 levantar hover:shadow-xl transition-all duration-300">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-emerald-500/10">
+          <svg class="w-7 h-7 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Mantenimiento eléctrico</h3>
+        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Revisión y reparación de cableado, tableros y sistemas eléctricos en general.</p>
+      </div>
+      <!-- Servicio 4 -->
+      <div data-aparecer class="p-8 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 levantar hover:shadow-xl transition-all duration-300">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-indigo-500/10">
+          <svg class="w-7 h-7 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Eficiencia energética</h3>
+        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Auditorías y cambio a LED para reducir de forma notable el consumo eléctrico.</p>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
