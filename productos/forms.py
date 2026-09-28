@@ -9,6 +9,7 @@ class ProductoForm(forms.ModelForm):
         fields = [
             'sku', 'nombre', 'categoria', 'precio', 'precio_oferta',
             'stock', 'imagen', 'descripcion', 'instalacion',
+            'especificaciones',  # NUEVO (HU G1-144)
         ]
         labels = {
             'sku': 'Código (SKU)',
@@ -20,10 +21,16 @@ class ProductoForm(forms.ModelForm):
             'imagen': 'Imagen',
             'descripcion': 'Descripción Corta',
             'instalacion': 'Uso e Instalación',
+            'especificaciones': 'Características Técnicas',  # NUEVO
         }
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 2}),
             'instalacion': forms.Textarea(attrs={'rows': 2}),
+            # NUEVO: caja de texto más alta, con un ejemplo de cómo llenarla
+            'especificaciones': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Potencia: 20W\nVoltaje: 110V\nLúmenes: 1800 lm',
+            }),
         }
 
     def __init__(self, *args, **kwargs):
