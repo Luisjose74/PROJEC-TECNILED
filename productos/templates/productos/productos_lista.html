@@ -1,0 +1,128 @@
+{% extends 'admin_base.html' %}
+{% block title %}Gestión de productos - TECNILED{% endblock %}
+{% block titulo_seccion %}Gestión de productos{% endblock %}
+{% block migas_actual %}Gestión de productos{% endblock %}
+{% block content %}
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+
+  <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-center">
+    <form method="get" class="flex w-full sm:w-auto gap-4">
+      <div class="relative flex-1 sm:w-64">
+        <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+        <input
+          type="text"
+          name="q"
+          value="{{ query }}"
+          placeholder="Buscar producto..."
+          class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-[#F2AE30] outline-none transition-shadow text-gray-900 dark:text-white"
+        >
+      </div>
+      <div class="relative">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18l-7 8v6l-4 2v-8L3 4z"/></svg>
+        <select
+          name="categoria"
+          onchange="this.form.submit()"
+          class="pl-9 pr-8 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-[#F2AE30] outline-none transition-shadow appearance-none text-gray-900 dark:text-white"
+        >
+          <option value="">Todas las categorías</option>
+          {% for valor, etiqueta in categorias %}
+          <option value="{{ valor }}" {% if valor == categoria %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+
+    <a href="{% url 'crear_producto' %}" class="w-full sm:w-auto px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-sky-500/20">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Añadir Producto
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[600px]">
+      <thead>
+        <tr class="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 text-sm border-b border-gray-100 dark:border-gray-700">
+          <th class="p-4 font-semibold">Producto</th>
+          <th class="p-4 font-semibold">Categoría</th>
+          <th class="p-4 font-semibold">Stock</th>
+          <th class="p-4 font-semibold">Precio</th>
+          <th class="p-4 font-semibold text-center">Destacado en Inicio</th>
+          <th class="p-4 font-semibold text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for p in productos %}
+        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+          <td class="p-4 flex items-center gap-4">
+            {% if p.imagen %}
+            <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="w-12 h-12 rounded-lg object-cover bg-gray-100 dark:bg-gray-900 shrink-0">
+            {% else %}
+            <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-900 shrink-0"></div>
+            {% endif %}
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white line-clamp-1">{{ p.nombre }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ p.sku }}</p>
+            </div>
+          </td>
+          <td class="p-4">
+            <span class="inline-flex px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg uppercase tracking-wider">
+              {{ p.get_categoria_display }}
+            </span>
+          </td>
+          <td class="p-4">
+            <span class="font-semibold {% if p.stock > 10 %}text-emerald-500{% elif p.stock > 0 %}text-amber-500{% else %}text-red-500{% endif %}">
+              {{ p.stock }}
+            </span>
+          </td>
+          <td class="p-4 font-medium text-gray-900 dark:text-white">
+            ${{ p.precio_oferta|default:p.precio }}
+          </td>
+          <td class="p-4 text-center">
+            {# Funcional (ticket G1-148). Es un formulario POST: no necesita JavaScript #}
+            <form method="post" action="{% url 'alternar_destacado' p.pk %}" class="inline-block">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button
+                type="submit"
+                role="switch"
+                aria-checked="{% if p.destacado_en_inicio %}true{% else %}false{% endif %}"
+                title="{% if p.destacado_en_inicio %}Quitar de Inicio{% else %}Destacar en Inicio{% endif %}"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 {% if p.destacado_en_inicio %}bg-emerald-500{% else %}bg-gray-300 dark:bg-gray-600{% endif %}"
+              >
+                <span class="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-md transform transition-transform duration-200 {% if p.destacado_en_inicio %}translate-x-5{% else %}translate-x-0.5{% endif %}"></span>
+              </button>
+            </form>
+          </td>
+          <td class="p-4 text-right">
+            {# Solo visuales. Editar = G1-145, Activar/desactivar = G1-146 #}
+            <button type="button" title="Editar" class="p-2 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors inline-block">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button type="button" title="Eliminar" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors inline-block ml-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="p-8 text-center text-gray-500">No se encontraron productos.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if productos.has_other_pages %}
+  <div class="p-4 flex justify-center gap-2 border-t border-gray-100 dark:border-gray-700">
+    {% if productos.has_previous %}
+      <a href="?q={{ query|urlencode }}&categoria={{ categoria }}&page={{ productos.previous_page_number }}" class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Anterior</a>
+    {% endif %}
+    <span class="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+    {% if productos.has_next %}
+      <a href="?q={{ query|urlencode }}&categoria={{ categoria }}&page={{ productos.next_page_number }}" class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Siguiente</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

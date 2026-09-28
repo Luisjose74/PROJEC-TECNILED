@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Usuarios',
+    'productos',
 ]
 
 MIDDLEWARE = [
@@ -119,7 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
@@ -135,3 +136,9 @@ AUTHENTICATION_BACKENDS = [
     'Usuarios.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+AUTH_USER_MODEL = 'Usuarios.Usuario'
+
+# Archivos subidos por los usuarios (imágenes de productos)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
