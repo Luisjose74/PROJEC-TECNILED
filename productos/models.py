@@ -7,6 +7,8 @@ class Proveedor(models.Model):
     nit = models.CharField('NIT', max_length=20, unique=True)
     telefono = models.CharField(max_length=20, blank=True)
     correo = models.EmailField(blank=True)
+    contacto = models.CharField('Persona de contacto', max_length=100, blank=True)
+    direccion = models.CharField('Dirección', max_length=200, blank=True)
     activo = models.BooleanField(default=True)
 
     class Meta:
