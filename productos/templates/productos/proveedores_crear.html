@@ -1,0 +1,105 @@
+{% extends 'admin_base.html' %}
+{% block title %}Registrar proveedor - TECNILED{% endblock %}
+{% block titulo_seccion %}Proveedores{% endblock %}
+{% block migas_actual %}Proveedores{% endblock %}
+{% block content %}
+<div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-xl mx-auto shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col">
+
+  <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start shrink-0">
+    <div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nuevo proveedor</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Completa los datos del proveedor</p>
+    </div>
+    <a href="{% url 'proveedores_lista' %}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </a>
+  </div>
+
+  <form method="post" class="p-6 space-y-4">
+    {% csrf_token %}
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nombre de la empresa *</label>
+      {{ form.nombre }}
+      {% for error in form.nombre.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">NIT *</label>
+        {{ form.nit }}
+        {% for error in form.nit.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Persona de contacto</label>
+        {{ form.contacto }}
+        {% for error in form.contacto.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Teléfono</label>
+        {{ form.telefono }}
+        {% for error in form.telefono.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Correo electrónico</label>
+        {{ form.correo }}
+        {% for error in form.correo.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dirección</label>
+      {{ form.direccion }}
+      {% for error in form.direccion.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        Productos que suministra (<span id="contador-productos">0</span>)
+      </label>
+      <div class="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 space-y-2">
+        {% for checkbox in form.productos %}
+        <label class="flex items-center gap-3 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+          {{ checkbox.tag }}
+          <span>{{ checkbox.choice_label }}</span>
+        </label>
+        {% empty %}
+        <p class="text-sm text-gray-400 italic">No hay productos registrados.</p>
+        {% endfor %}
+      </div>
+      {% for error in form.productos.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+    </div>
+
+    <label class="flex items-center gap-3 cursor-pointer">
+      {{ form.activo }}
+      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Proveedor activo</span>
+    </label>
+
+    {% if form.non_field_errors %}
+    <p class="text-sm text-red-500 font-medium">{{ form.non_field_errors.0 }}</p>
+    {% endif %}
+
+    <div class="pt-4 flex justify-end gap-3 shrink-0">
+      <a href="{% url 'proveedores_lista' %}" class="px-5 py-2.5 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+        Cancelar
+      </a>
+      <button type="submit" class="px-5 py-2.5 bg-[#F2AE30] hover:bg-[#d99b28] text-black font-bold rounded-xl transition-colors shadow-lg">
+        Guardar Proveedor
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const contador = document.getElementById('contador-productos');
+  const casillas = document.querySelectorAll('input[name="productos"]');
+  const actualizar = () => {
+    contador.textContent = document.querySelectorAll('input[name="productos"]:checked').length;
+  };
+  casillas.forEach(c => c.addEventListener('change', actualizar));
+  actualizar();
+</script>
+{% endblock %}

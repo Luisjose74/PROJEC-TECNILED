@@ -7,8 +7,8 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import ProductoForm
-from .models import Producto
+from .forms import ProductoForm, ProveedorForm
+from .models import Producto, Proveedor
 
 
 @login_required
@@ -17,7 +17,7 @@ def productos_lista(request):
     query = request.GET.get('q', '').strip()
     categoria = request.GET.get('categoria', '').strip()
 
-    productos = Producto.objects.all()
+    productos = Producto.objects.select_related('proveedor')
 
     if query:
         productos = productos.filter(
@@ -88,3 +88,37 @@ def producto_detalle(request, producto_id):
         'producto': producto,
         'relacionados': relacionados,
     })
+
+
+@login_required
+@permission_required('Usuarios.gestionar_compras', raise_exception=True)
+def proveedores_lista(request):
+    query = request.GET.get('q', '').strip()
+    proveedores = Proveedor.objects.prefetch_related('productos')
+    if query:
+        proveedores = proveedores.filter(Q(nombre__icontains=query) | Q(nit__icontains=query))
+
+    pagina = Paginator(proveedores, 10).get_page(request.GET.get('page'))
+    return render(request, 'productos/proveedores_lista.html', {
+        'proveedores': pagina,
+        'query': query,
+    })
+
+
+@login_required
+@permission_required('Usuarios.gestionar_compras', raise_exception=True)
+def crear_proveedor(request):
+    if request.method == 'POST':
+        form = ProveedorForm(request.POST)
+        if form.is_valid():
+            proveedor = form.save()
+            elegidos = form.cleaned_data['productos']
+            # Los desmarcados quedan sin proveedor; los marcados pasan a este proveedor
+            proveedor.productos.exclude(pk__in=elegidos).update(proveedor=None)
+            elegidos.update(proveedor=proveedor)
+            messages.success(request, f'Proveedor "{proveedor.nombre}" registrado correctamente.')
+            return redirect('proveedores_lista')
+    else:
+        form = ProveedorForm()
+
+    return render(request, 'productos/proveedores_crear.html', {'form': form})
