@@ -1,5 +1,10 @@
+import secrets
+from datetime import timedelta
+
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
+from django.utils import timezone
 
 # Permisos por defecto de cada rol. Se pueden ajustar luego en /admin/ -> Grupos.
 PERMISOS_POR_ROL = {
@@ -20,7 +25,7 @@ class Usuario(AbstractUser):
         SUSPENDIDA = 'suspendida', 'Suspendida'
         BLOQUEADA = 'bloqueada', 'Bloqueada'
 
-    MAX_INTENTOS = 3  # NUEVO (G1-128)
+    MAX_INTENTOS = 3  # G1-128
 
     email = models.EmailField('correo electrónico', unique=True)
     documento = models.CharField(max_length=20, unique=True, null=True, blank=True)
@@ -29,7 +34,7 @@ class Usuario(AbstractUser):
     estado_cuenta = models.CharField(
         max_length=12, choices=EstadoCuenta.choices, default=EstadoCuenta.ACTIVA
     )
-    intentos_fallidos = models.PositiveSmallIntegerField(default=0)  # NUEVO (G1-128)
+    intentos_fallidos = models.PositiveSmallIntegerField(default=0)  # G1-128
 
     class Meta(AbstractUser.Meta):
         permissions = [
@@ -41,7 +46,7 @@ class Usuario(AbstractUser):
     def save(self, *args, **kwargs):
         self.email = self.email.strip().lower()
         self.username = self.email
-        # NUEVO (G1-128): si el admin reactiva una cuenta bloqueada, se reinicia el contador
+        # G1-128: si el admin reactiva una cuenta bloqueada, se reinicia el contador
         if (self.estado_cuenta == self.EstadoCuenta.ACTIVA
                 and self.intentos_fallidos >= self.MAX_INTENTOS):
             self.intentos_fallidos = 0
@@ -60,3 +65,67 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class CodigoRecuperacion(models.Model):
+    """Código temporal de un solo uso para recuperar la contraseña (G1-126)."""
+
+    VIGENCIA_MINUTOS = 10
+    MAX_INTENTOS = 5
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, related_name='codigos_recuperacion'
+    )
+    codigo_hash = models.CharField(max_length=128)  # el código nunca se guarda en claro
+    creado_en = models.DateTimeField(auto_now_add=True)
+    expira_en = models.DateTimeField()
+    usado = models.BooleanField(default=False)
+    intentos = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f'Código de {self.usuario.email} ({self.creado_en:%Y-%m-%d %H:%M})'
+
+    @classmethod
+    def generar(cls, usuario):
+        """Crea un código nuevo e invalida los anteriores.
+        Devuelve (objeto, codigo_en_claro). El código en claro solo existe aquí:
+        hay que enviarlo por correo y no se vuelve a poder consultar."""
+        cls.objects.filter(usuario=usuario, usado=False).update(usado=True)
+        codigo = f'{secrets.randbelow(10 ** 6):06d}'
+        objeto = cls.objects.create(
+            usuario=usuario,
+            codigo_hash=make_password(codigo),
+            expira_en=timezone.now() + timedelta(minutes=cls.VIGENCIA_MINUTOS),
+        )
+        return objeto, codigo
+
+    @classmethod
+    def ultimo_vigente(cls, usuario):
+        """Devuelve el código vigente del usuario, o None si no hay."""
+        codigo = cls.objects.filter(usuario=usuario, usado=False).first()
+        return codigo if codigo and codigo.esta_vigente else None
+
+    @property
+    def esta_vigente(self):
+        return (
+            not self.usado
+            and self.intentos < self.MAX_INTENTOS
+            and timezone.now() < self.expira_en
+        )
+
+    def validar(self, codigo):
+        """True si el código es correcto y sigue vigente. Si falla, cuenta el intento."""
+        if not self.esta_vigente:
+            return False
+        if check_password(codigo, self.codigo_hash):
+            return True
+        self.intentos += 1
+        self.save(update_fields=['intentos'])
+        return False
+
+    def marcar_usado(self):
+        self.usado = True
+        self.save(update_fields=['usado'])

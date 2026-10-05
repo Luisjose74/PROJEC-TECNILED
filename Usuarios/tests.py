@@ -1,6 +1,9 @@
+from datetime import timedelta
+from django.test import override_settings
+from django.utils import timezone
+from Usuarios.models import CodigoRecuperacion
 from django.test import TestCase
 from django.urls import reverse
-
 from Usuarios.models import Usuario
 
 
@@ -236,3 +239,60 @@ class BloqueoCuentaTests(TestCase):
         self.usuario.refresh_from_db()
         self.assertEqual(self.usuario.intentos_fallidos, 0)
         self.assertTrue(self.usuario.is_active)
+        
+# MD5 solo en pruebas: hace los tests mucho más rápidos. En producción se usa el hasher normal.
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class CodigoRecuperacionTests(TestCase):
+    def setUp(self):
+        self.usuario = Usuario.objects.create_user(
+            username='rec@test.com', email='rec@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+
+    def test_genera_codigo_de_6_digitos_y_no_lo_guarda_en_claro(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        self.assertEqual(len(codigo), 6)
+        self.assertTrue(codigo.isdigit())
+        self.assertNotEqual(objeto.codigo_hash, codigo)
+
+    def test_codigo_correcto_es_valido(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        self.assertTrue(objeto.validar(codigo))
+
+    def test_codigo_incorrecto_es_rechazado_y_cuenta_el_intento(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        incorrecto = '000000' if codigo != '000000' else '111111'
+        self.assertFalse(objeto.validar(incorrecto))
+        objeto.refresh_from_db()
+        self.assertEqual(objeto.intentos, 1)
+
+    def test_codigo_vencido_es_rechazado(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        objeto.expira_en = timezone.now() - timedelta(minutes=1)
+        objeto.save()
+        self.assertFalse(objeto.validar(codigo))
+
+    def test_codigo_usado_no_se_puede_reutilizar(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        self.assertTrue(objeto.validar(codigo))
+        objeto.marcar_usado()
+        self.assertFalse(objeto.validar(codigo))
+
+    def test_codigo_nuevo_invalida_el_anterior(self):
+        primero, codigo1 = CodigoRecuperacion.generar(self.usuario)
+        segundo, codigo2 = CodigoRecuperacion.generar(self.usuario)
+        primero.refresh_from_db()
+        self.assertFalse(primero.validar(codigo1))
+        self.assertTrue(segundo.validar(codigo2))
+
+    def test_tras_5_intentos_fallidos_el_codigo_queda_inutilizable(self):
+        objeto, codigo = CodigoRecuperacion.generar(self.usuario)
+        incorrecto = '000000' if codigo != '000000' else '111111'
+        for _ in range(CodigoRecuperacion.MAX_INTENTOS):
+            objeto.validar(incorrecto)
+        self.assertFalse(objeto.validar(codigo))  # ni con el código correcto
+
+    def test_ultimo_vigente_devuelve_none_si_no_hay(self):
+        self.assertIsNone(CodigoRecuperacion.ultimo_vigente(self.usuario))
+        objeto, _ = CodigoRecuperacion.generar(self.usuario)
+        self.assertEqual(CodigoRecuperacion.ultimo_vigente(self.usuario), objeto)
