@@ -139,6 +139,9 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'Usuarios.Usuario'
 
+# Página a la que Django envía a quien no ha iniciado sesión
+LOGIN_URL = 'login'
+
 # Archivos subidos por los usuarios (imágenes de productos)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
