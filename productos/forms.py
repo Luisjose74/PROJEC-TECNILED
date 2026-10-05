@@ -2,6 +2,8 @@ from django import forms
 
 from .models import Producto, Proveedor
 
+import re
+
 
 class ProductoForm(forms.ModelForm):
     class Meta:

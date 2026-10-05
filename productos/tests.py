@@ -11,6 +11,8 @@ from PIL import Image
 from Usuarios.models import Usuario
 from productos.models import Producto
 
+from productos.models import Proveedor
+
 # Las imágenes de los tests se guardan aquí y se borran al terminar
 MEDIA_TEMPORAL = tempfile.mkdtemp()
 
@@ -302,3 +304,72 @@ class DestacarEnInicioTests(TestCase):
         self.assertEqual(resp.status_code, 403)
         self.producto.refresh_from_db()
         self.assertFalse(self.producto.destacado_en_inicio)
+        
+        
+        
+
+# ---------------------------------------------------------------------------
+# PROVEEDORES (G1-134, G1-137, G1-138)
+# ---------------------------------------------------------------------------
+
+
+
+def crear_proveedor_bd(**overrides):
+    datos = {
+        'nombre': 'Distribuidora Eléctrica S.A.S.', 'nit': '900123456-7',
+        'telefono': '3001112233', 'correo': 'ventas@dist.com',
+    }
+    datos.update(overrides)
+    return Proveedor.objects.create(**datos)
+
+
+class BuscarProveedoresTests(TestCase):
+    """G1-134: Proveedor - buscar proveedor."""
+
+    def setUp(self):
+        self.admin = crear_usuario('admin_busq_prov@test.com', Usuario.Rol.ADMINISTRADOR)
+        crear_proveedor_bd()
+        crear_proveedor_bd(nombre='Ferretería El Tornillo', nit='800555111-2')
+        self.client.force_login(self.admin)
+
+    def test_busca_por_nombre(self):
+        resp = self.client.get(reverse('proveedores_lista'), {'q': 'Distribuidora'})
+        self.assertContains(resp, 'Distribuidora Eléctrica S.A.S.')
+        self.assertNotContains(resp, 'Ferretería El Tornillo')
+
+    def test_busqueda_no_distingue_mayusculas(self):
+        resp = self.client.get(reverse('proveedores_lista'), {'q': 'el tornillo'})
+        self.assertContains(resp, 'Ferretería El Tornillo')
+
+    def test_busca_por_nit(self):
+        resp = self.client.get(reverse('proveedores_lista'), {'q': '800555'})
+        self.assertContains(resp, 'Ferretería El Tornillo')
+        self.assertNotContains(resp, 'Distribuidora Eléctrica')
+
+    def test_busca_por_nit_escrito_sin_guion(self):
+        resp = self.client.get(reverse('proveedores_lista'), {'q': '9001234567'})
+        self.assertContains(resp, 'Distribuidora Eléctrica S.A.S.')
+        self.assertNotContains(resp, 'Ferretería El Tornillo')
+
+    def test_sin_resultados_informa_que_no_se_encontraron(self):
+        resp = self.client.get(reverse('proveedores_lista'), {'q': 'zzzz'})
+        self.assertContains(resp, 'No se encontraron proveedores')
+        self.assertNotContains(resp, 'Distribuidora Eléctrica')
+
+    def test_sin_busqueda_muestra_todos(self):
+        resp = self.client.get(reverse('proveedores_lista'))
+        self.assertContains(resp, 'Distribuidora Eléctrica S.A.S.')
+        self.assertContains(resp, 'Ferretería El Tornillo')
+
+    def test_paginacion_conserva_la_busqueda(self):
+        for i in range(15):
+            crear_proveedor_bd(nombre=f'Proveedor masivo {i}', nit=f'700{i:03d}-1')
+        resp = self.client.get(reverse('proveedores_lista'), {'q': 'masivo', 'page': 2})
+        self.assertEqual(len(resp.context['proveedores']), 5)
+        self.assertEqual(resp.context['query'], 'masivo')
+
+    def test_control_inventario_recibe_403(self):
+        inv = crear_usuario('inv_busq_prov@test.com', Usuario.Rol.CONTROL_INVENTARIO)
+        self.client.force_login(inv)
+        resp = self.client.get(reverse('proveedores_lista'))
+        self.assertEqual(resp.status_code, 403)

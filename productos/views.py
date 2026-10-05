@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.db.models.functions import Replace
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -95,8 +96,21 @@ def producto_detalle(request, producto_id):
 def proveedores_lista(request):
     query = request.GET.get('q', '').strip()
     proveedores = Proveedor.objects.prefetch_related('productos')
+
     if query:
-        proveedores = proveedores.filter(Q(nombre__icontains=query) | Q(nit__icontains=query))
+        # G1-134: busca por nombre o NIT. El NIT también se encuentra si se escribe
+        # sin guiones, puntos ni espacios (ej: 9001234567 encuentra 900123456-7).
+        nit_buscado = query.replace('-', '').replace('.', '').replace(' ', '')
+        filtro = Q(nombre__icontains=query) | Q(nit__icontains=query)
+        if nit_buscado:
+            proveedores = proveedores.annotate(
+                nit_limpio=Replace(
+                    Replace(Replace('nit', Value('-'), Value('')), Value('.'), Value('')),
+                    Value(' '), Value(''),
+                )
+            )
+            filtro |= Q(nit_limpio__icontains=nit_buscado)
+        proveedores = proveedores.filter(filtro)
 
     pagina = Paginator(proveedores, 10).get_page(request.GET.get('page'))
     return render(request, 'productos/proveedores_lista.html', {
