@@ -28,13 +28,34 @@ def login_view(request):
 
     error = None
     if request.method == 'POST':
-        correo = request.POST.get('correo')
+        correo = (request.POST.get('correo') or '').strip().lower()
         contrasena = request.POST.get('contrasena')
-        user = authenticate(request, username=correo, password=contrasena)
-        if user is not None:
-            login(request, user)
-            return redirect('inicio')
-        error = "Credenciales incorrectas"
+
+        # Buscamos al usuario ANTES de autenticar: si la cuenta está bloqueada,
+        # authenticate() devuelve None aunque la clave sea correcta.
+        usuario = Usuario.objects.filter(email=correo).first()
+
+        if usuario and usuario.estado_cuenta == Usuario.EstadoCuenta.BLOQUEADA:
+            error = "Tu cuenta está bloqueada por intentos fallidos. Contacta al administrador."
+        elif usuario and usuario.estado_cuenta == Usuario.EstadoCuenta.SUSPENDIDA:
+            error = "Tu cuenta está suspendida. Contacta al administrador."
+        else:
+            user = authenticate(request, username=correo, password=contrasena)
+            if user is not None:
+                # Login correcto: se reinicia el contador de intentos
+                if user.intentos_fallidos:
+                    user.intentos_fallidos = 0
+                    user.save()
+                login(request, user)
+                return redirect('inicio')
+
+            error = "Credenciales incorrectas"
+            if usuario:
+                usuario.intentos_fallidos += 1
+                if usuario.intentos_fallidos >= Usuario.MAX_INTENTOS:
+                    usuario.estado_cuenta = Usuario.EstadoCuenta.BLOQUEADA
+                    error = "Tu cuenta fue bloqueada por 3 intentos fallidos. Contacta al administrador."
+                usuario.save()
 
     return render(request, 'login.html', {'error': error})
 

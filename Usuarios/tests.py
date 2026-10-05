@@ -189,3 +189,50 @@ class EditarRolTests(TestCase):
         self.client.force_login(control)
         resp = self.client.get(reverse('usuarios_lista'))
         self.assertEqual(resp.status_code, 403)
+        
+class BloqueoCuentaTests(TestCase):
+    def setUp(self):
+        self.usuario = Usuario.objects.create_user(
+            username='bloq@test.com', email='bloq@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+
+    def intentar(self, clave):
+        return self.client.post(reverse('login'), {'correo': 'bloq@test.com', 'contrasena': clave})
+
+    def test_tres_fallos_bloquean_la_cuenta(self):
+        for _ in range(3):
+            self.intentar('mala')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.BLOQUEADA)
+        self.assertFalse(self.usuario.is_active)
+
+    def test_dos_fallos_no_bloquean(self):
+        self.intentar('mala')
+        self.intentar('mala')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.ACTIVA)
+
+    def test_cuenta_bloqueada_no_entra_ni_con_clave_correcta(self):
+        for _ in range(3):
+            self.intentar('mala')
+        resp = self.intentar('Prueba123!')
+        self.assertContains(resp, 'bloqueada')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_login_exitoso_reinicia_el_contador(self):
+        self.intentar('mala')
+        self.intentar('mala')
+        self.intentar('Prueba123!')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.intentos_fallidos, 0)
+
+    def test_admin_reactiva_y_el_contador_vuelve_a_cero(self):
+        for _ in range(3):
+            self.intentar('mala')
+        self.usuario.refresh_from_db()
+        self.usuario.estado_cuenta = Usuario.EstadoCuenta.ACTIVA
+        self.usuario.save()
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.intentos_fallidos, 0)
+        self.assertTrue(self.usuario.is_active)

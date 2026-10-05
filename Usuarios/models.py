@@ -20,6 +20,8 @@ class Usuario(AbstractUser):
         SUSPENDIDA = 'suspendida', 'Suspendida'
         BLOQUEADA = 'bloqueada', 'Bloqueada'
 
+    MAX_INTENTOS = 3  # NUEVO (G1-128)
+
     email = models.EmailField('correo electrónico', unique=True)
     documento = models.CharField(max_length=20, unique=True, null=True, blank=True)
     telefono = models.CharField(max_length=20, blank=True)
@@ -27,6 +29,7 @@ class Usuario(AbstractUser):
     estado_cuenta = models.CharField(
         max_length=12, choices=EstadoCuenta.choices, default=EstadoCuenta.ACTIVA
     )
+    intentos_fallidos = models.PositiveSmallIntegerField(default=0)  # NUEVO (G1-128)
 
     class Meta(AbstractUser.Meta):
         permissions = [
@@ -38,6 +41,10 @@ class Usuario(AbstractUser):
     def save(self, *args, **kwargs):
         self.email = self.email.strip().lower()
         self.username = self.email
+        # NUEVO (G1-128): si el admin reactiva una cuenta bloqueada, se reinicia el contador
+        if (self.estado_cuenta == self.EstadoCuenta.ACTIVA
+                and self.intentos_fallidos >= self.MAX_INTENTOS):
+            self.intentos_fallidos = 0
         self.is_active = self.estado_cuenta == self.EstadoCuenta.ACTIVA
         if self.is_superuser:
             self.rol = self.Rol.ADMINISTRADOR
