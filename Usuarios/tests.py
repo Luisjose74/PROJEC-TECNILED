@@ -215,3 +215,9 @@ class PlantillasBaseTests(TestCase):
         resp = self.client.get(reverse('usuarios_lista'))
         # 2) El título y la miga deben decir "Gestión de usuarios" (con tilde)
         self.assertContains(resp, 'Gestión de usuarios')
+        
+    def test_usuarios_crear_usa_admin_base(self):
+        resp = self.client.get(reverse('crear_usuario'))
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        self.assertTemplateNotUsed(resp, 'base.html')
+        self.assertContains(resp, 'Nuevo administrador')
