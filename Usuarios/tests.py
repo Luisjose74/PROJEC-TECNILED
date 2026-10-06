@@ -189,3 +189,29 @@ class EditarRolTests(TestCase):
         self.client.force_login(control)
         resp = self.client.get(reverse('usuarios_lista'))
         self.assertEqual(resp.status_code, 403)
+        
+class PlantillasBaseTests(TestCase):
+    """G1-1190: las pantallas de administración usan admin_base.html."""
+
+    def setUp(self):
+        # Antes de cada prueba: crear un administrador e iniciar sesión
+        self.admin = Usuario.objects.create_user(
+            username='luis.silva@tecniled.com', email='luis.silva@tecniled.com',
+            password='Prueba123!', first_name='Luis José', last_name='Silva Fajardo',
+            rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.client.force_login(self.admin)
+
+    def test_usuarios_lista_usa_admin_base(self):
+        # 1) Abrir la página /usuarios/
+        resp = self.client.get(reverse('usuarios_lista'))
+        # 2) Debe usar la plantilla del panel...
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        # 3) ...y NO la plantilla de la tienda
+        self.assertTemplateNotUsed(resp, 'base.html')
+
+    def test_usuarios_lista_muestra_titulo_y_miga(self):
+        # 1) Abrir la página /usuarios/
+        resp = self.client.get(reverse('usuarios_lista'))
+        # 2) El título y la miga deben decir "Gestión de usuarios" (con tilde)
+        self.assertContains(resp, 'Gestión de usuarios')
