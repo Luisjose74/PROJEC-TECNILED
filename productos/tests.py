@@ -13,6 +13,13 @@ from productos.models import Producto
 
 from productos.models import Proveedor
 
+
+from datetime import timedelta
+
+from django.utils import timezone
+
+from productos.forms import ProductoForm
+
 # Las imágenes de los tests se guardan aquí y se borran al terminar
 MEDIA_TEMPORAL = tempfile.mkdtemp()
 
@@ -373,3 +380,286 @@ class BuscarProveedoresTests(TestCase):
         self.client.force_login(inv)
         resp = self.client.get(reverse('proveedores_lista'))
         self.assertEqual(resp.status_code, 403)
+        
+        
+        
+
+
+class ModificarProveedorTests(TestCase):
+    """G1-137: Proveedor - modificar proveedor."""
+
+    def setUp(self):
+        self.admin = crear_usuario('admin_mod_prov@test.com', Usuario.Rol.ADMINISTRADOR)
+        self.proveedor = crear_proveedor_bd()
+        self.url = reverse('editar_proveedor', args=[self.proveedor.pk])
+        self.client.force_login(self.admin)
+
+    def datos(self, **overrides):
+        datos = {
+            'contacto': 'Carlos Pérez', 'telefono': '3109998877',
+            'correo': 'nuevo@dist.com', 'direccion': 'Calle 10 # 5-20, Sogamoso',
+        }
+        datos.update(overrides)
+        return datos
+
+    def test_formulario_se_precarga_con_los_datos_actuales(self):
+        resp = self.client.get(self.url)
+        self.assertContains(resp, 'Distribuidora Eléctrica S.A.S.')
+        self.assertContains(resp, '900123456-7')
+        self.assertEqual(resp.context['form'].initial['telefono'], '3001112233')
+
+    def test_actualiza_telefono_direccion_y_correo(self):
+        resp = self.client.post(self.url, self.datos())
+        self.assertRedirects(resp, reverse('proveedores_lista'))
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.telefono, '3109998877')
+        self.assertEqual(self.proveedor.correo, 'nuevo@dist.com')
+        self.assertEqual(self.proveedor.direccion, 'Calle 10 # 5-20, Sogamoso')
+
+    def test_no_permite_cambiar_nombre_ni_nit(self):
+        self.client.post(self.url, self.datos(nombre='Hackeado S.A.', nit='111111111-1'))
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.nombre, 'Distribuidora Eléctrica S.A.S.')
+        self.assertEqual(self.proveedor.nit, '900123456-7')
+
+    def test_no_cambia_el_estado_activo(self):
+        self.client.post(self.url, self.datos())  # sin 'activo' en el POST
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_correo_invalido_es_rechazado(self):
+        resp = self.client.post(self.url, self.datos(correo='no-es-correo'))
+        self.assertEqual(resp.status_code, 200)
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.correo, 'ventas@dist.com')
+
+    def test_telefono_con_letras_es_rechazado(self):
+        resp = self.client.post(self.url, self.datos(telefono='abc123'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('telefono', resp.context['form'].errors)
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.telefono, '3001112233')
+
+    def test_telefono_muy_corto_es_rechazado(self):
+        resp = self.client.post(self.url, self.datos(telefono='123'))
+        self.assertIn('telefono', resp.context['form'].errors)
+
+    def test_actualiza_los_productos_vinculados(self):
+        p1 = crear_producto_bd(sku='V1', nombre='Producto uno', proveedor=self.proveedor)
+        p2 = crear_producto_bd(sku='V2', nombre='Producto dos')
+        self.client.post(self.url, self.datos(productos=[p2.pk]))
+        p1.refresh_from_db()
+        p2.refresh_from_db()
+        self.assertIsNone(p1.proveedor)
+        self.assertEqual(p2.proveedor, self.proveedor)
+
+    def test_guardar_no_desvincula_un_producto_inactivo_ya_asociado(self):
+        inactivo = crear_producto_bd(
+            sku='V3', nombre='Producto inactivo', activo=False, proveedor=self.proveedor
+        )
+        self.client.post(self.url, self.datos(productos=[inactivo.pk]))
+        inactivo.refresh_from_db()
+        self.assertEqual(inactivo.proveedor, self.proveedor)
+
+    def test_proveedor_inexistente_da_404(self):
+        resp = self.client.get(reverse('editar_proveedor', args=[9999]))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_la_lista_tiene_el_boton_editar(self):
+        resp = self.client.get(reverse('proveedores_lista'))
+        self.assertContains(resp, self.url)
+
+    def test_control_inventario_recibe_403(self):
+        inv = crear_usuario('inv_mod_prov@test.com', Usuario.Rol.CONTROL_INVENTARIO)
+        self.client.force_login(inv)
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+        self.assertEqual(self.client.post(self.url, self.datos()).status_code, 403)
+
+    def test_usuario_sin_sesion_no_accede(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(self.url).status_code, 302)
+        
+        
+
+class InactivarProveedorTests(TestCase):
+    """G1-138: Proveedor - inactivar proveedor."""
+
+    def setUp(self):
+        self.admin = crear_usuario('admin_inact_prov@test.com', Usuario.Rol.ADMINISTRADOR)
+        self.proveedor = crear_proveedor_bd()
+        self.url = reverse('inactivar_proveedor', args=[self.proveedor.pk])
+        self.client.force_login(self.admin)
+
+    def test_inactiva_con_motivo_y_guarda_el_motivo(self):
+        resp = self.client.post(self.url, {'motivo': 'Incumplió las entregas'})
+        self.assertRedirects(resp, reverse('proveedores_lista'))
+        self.proveedor.refresh_from_db()
+        self.assertFalse(self.proveedor.activo)
+        self.assertEqual(self.proveedor.motivo_inactivacion, 'Incumplió las entregas')
+
+    def test_muestra_mensaje_de_exito(self):
+        resp = self.client.post(self.url, {'motivo': 'Incumplió las entregas'}, follow=True)
+        self.assertContains(resp, 'inactivado correctamente')
+
+    def test_registra_la_fecha_del_cambio(self):
+        antes = timezone.now() - timedelta(days=30)
+        Proveedor.objects.filter(pk=self.proveedor.pk).update(fecha_actualizacion=antes)
+        self.client.post(self.url, {'motivo': 'Incumplió las entregas'})
+        self.proveedor.refresh_from_db()
+        self.assertGreater(self.proveedor.fecha_actualizacion, antes)
+
+    def test_conserva_la_informacion_y_los_productos(self):
+        producto = crear_producto_bd(sku='I1', nombre='Producto del proveedor', proveedor=self.proveedor)
+        self.client.post(self.url, {'motivo': 'Incumplió las entregas'})
+        self.assertTrue(Proveedor.objects.filter(pk=self.proveedor.pk).exists())
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.nit, '900123456-7')
+        self.assertEqual(self.proveedor.correo, 'ventas@dist.com')
+        producto.refresh_from_db()
+        self.assertEqual(producto.proveedor, self.proveedor)
+
+    def test_sin_motivo_es_rechazado(self):
+        self.client.post(self.url, {'motivo': ''})
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_motivo_muy_corto_es_rechazado(self):
+        self.client.post(self.url, {'motivo': 'abc'})
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_motivo_solo_espacios_es_rechazado(self):
+        self.client.post(self.url, {'motivo': '        '})
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_motivo_invalido_muestra_el_error(self):
+        resp = self.client.post(self.url, {'motivo': ''}, follow=True)
+        self.assertContains(resp, 'Debes indicar el motivo')
+
+    def test_inactivar_uno_ya_inactivo_es_transicion_invalida(self):
+        self.client.post(self.url, {'motivo': 'Primer motivo válido'})
+        resp = self.client.post(self.url, {'motivo': 'Segundo motivo distinto'}, follow=True)
+        self.assertContains(resp, 'ya está inactivo')
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.motivo_inactivacion, 'Primer motivo válido')
+
+    def test_metodo_inactivar_del_modelo_rechaza_si_ya_esta_inactivo(self):
+        self.proveedor.inactivar('Motivo válido')
+        with self.assertRaises(ValueError):
+            self.proveedor.inactivar('Otro motivo')
+
+    def test_get_no_esta_permitido(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_proveedor_inexistente_da_404(self):
+        resp = self.client.post(reverse('inactivar_proveedor', args=[9999]), {'motivo': 'Motivo válido'})
+        self.assertEqual(resp.status_code, 404)
+
+    def test_next_externo_se_ignora(self):
+        resp = self.client.post(self.url, {'motivo': 'Motivo válido', 'next': 'https://malicioso.com/'})
+        self.assertRedirects(resp, reverse('proveedores_lista'))
+
+    def test_next_interno_se_respeta(self):
+        siguiente = reverse('proveedores_lista') + '?q=Distribuidora'
+        resp = self.client.post(self.url, {'motivo': 'Motivo válido', 'next': siguiente})
+        self.assertRedirects(resp, siguiente)
+
+    def test_la_lista_muestra_boton_inactivar_solo_a_proveedores_activos(self):
+        self.assertContains(self.client.get(reverse('proveedores_lista')), self.url)
+        self.client.post(self.url, {'motivo': 'Motivo válido'})
+        self.assertNotContains(self.client.get(reverse('proveedores_lista')), f'data-inactivar-url="{self.url}"')
+
+    def test_proveedor_inactivo_no_se_ofrece_al_crear_productos(self):
+        self.assertIn(self.proveedor, ProductoForm().fields['proveedor'].queryset)
+        self.client.post(self.url, {'motivo': 'Motivo válido'})
+        self.assertNotIn(self.proveedor, ProductoForm().fields['proveedor'].queryset)
+
+    def test_control_inventario_recibe_403(self):
+        inv = crear_usuario('inv_inact_prov@test.com', Usuario.Rol.CONTROL_INVENTARIO)
+        self.client.force_login(inv)
+        self.assertEqual(self.client.post(self.url, {'motivo': 'Motivo válido'}).status_code, 403)
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+
+    def test_usuario_sin_sesion_no_puede_inactivar(self):
+        self.client.logout()
+        self.assertEqual(self.client.post(self.url, {'motivo': 'Motivo válido'}).status_code, 302)
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+        
+        
+        
+
+class ReactivarProveedorTests(TestCase):
+    """Reactivar un proveedor inactivado (G1-138 deja la papelera visible en inactivos)."""
+
+    def setUp(self):
+        self.admin = crear_usuario('admin_react_prov@test.com', Usuario.Rol.ADMINISTRADOR)
+        self.proveedor = crear_proveedor_bd()
+        self.proveedor.inactivar('Incumplió las entregas')
+        self.url = reverse('reactivar_proveedor', args=[self.proveedor.pk])
+        self.client.force_login(self.admin)
+
+    def test_reactiva_y_limpia_el_motivo(self):
+        resp = self.client.post(self.url)
+        self.assertRedirects(resp, reverse('proveedores_lista'))
+        self.proveedor.refresh_from_db()
+        self.assertTrue(self.proveedor.activo)
+        self.assertEqual(self.proveedor.motivo_inactivacion, '')
+
+    def test_muestra_mensaje_de_exito(self):
+        resp = self.client.post(self.url, follow=True)
+        self.assertContains(resp, 'reactivado correctamente')
+
+    def test_conserva_los_datos_del_proveedor(self):
+        self.client.post(self.url)
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.nit, '900123456-7')
+        self.assertEqual(self.proveedor.correo, 'ventas@dist.com')
+
+    def test_reactivar_uno_ya_activo_es_transicion_invalida(self):
+        self.client.post(self.url)
+        resp = self.client.post(self.url, follow=True)
+        self.assertContains(resp, 'ya está activo')
+
+    def test_metodo_reactivar_del_modelo_rechaza_si_ya_esta_activo(self):
+        self.proveedor.reactivar()
+        with self.assertRaises(ValueError):
+            self.proveedor.reactivar()
+
+    def test_proveedor_reactivado_vuelve_a_ofrecerse_al_crear_productos(self):
+        self.assertNotIn(self.proveedor, ProductoForm().fields['proveedor'].queryset)
+        self.client.post(self.url)
+        self.assertIn(self.proveedor, ProductoForm().fields['proveedor'].queryset)
+
+    def test_la_papelera_aparece_en_activos_e_inactivos(self):
+        activo = crear_proveedor_bd(nombre='Activo SAS', nit='700111222-3')
+        registrado_inactivo = crear_proveedor_bd(nombre='Nace inactivo', nit='700333444-5', activo=False)
+        resp = self.client.get(reverse('proveedores_lista'))
+        # inactivo (inactivado antes) y el que se registró como inactivo: botón de reactivar
+        self.assertContains(resp, f'data-reactivar-url="{self.url}"')
+        self.assertContains(resp, f'data-reactivar-url="{reverse("reactivar_proveedor", args=[registrado_inactivo.pk])}"')
+        # activo: botón de inactivar
+        self.assertContains(resp, f'data-inactivar-url="{reverse("inactivar_proveedor", args=[activo.pk])}"')
+
+    def test_get_no_esta_permitido(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    def test_proveedor_inexistente_da_404(self):
+        self.assertEqual(self.client.post(reverse('reactivar_proveedor', args=[9999])).status_code, 404)
+
+    def test_control_inventario_recibe_403(self):
+        inv = crear_usuario('inv_react_prov@test.com', Usuario.Rol.CONTROL_INVENTARIO)
+        self.client.force_login(inv)
+        self.assertEqual(self.client.post(self.url).status_code, 403)
+        self.proveedor.refresh_from_db()
+        self.assertFalse(self.proveedor.activo)
+
+    def test_usuario_sin_sesion_no_puede_reactivar(self):
+        self.client.logout()
+        self.assertEqual(self.client.post(self.url).status_code, 302)
+        self.proveedor.refresh_from_db()
+        self.assertFalse(self.proveedor.activo)
