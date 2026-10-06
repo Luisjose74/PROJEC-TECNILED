@@ -328,3 +328,22 @@ class CodigoRecuperacionTests(TestCase):
         self.assertIsNone(CodigoRecuperacion.ultimo_vigente(self.usuario))
         objeto, _ = CodigoRecuperacion.generar(self.usuario)
         self.assertEqual(CodigoRecuperacion.ultimo_vigente(self.usuario), objeto)
+
+class VerContrasenaTests(TestCase):
+    """Botón del ojo para mostrar u ocultar la contraseña."""
+
+    def test_login_tiene_boton_del_ojo(self):
+        resp = self.client.get(reverse('login'))
+        self.assertContains(resp, 'Mostrar contraseña')
+        self.assertContains(resp, 'js/ver_contrasena.js')
+
+    def test_crear_usuario_tiene_boton_del_ojo(self):
+        admin = Usuario.objects.create_user(
+            username='laura.sicuariza@tecniled.com', email='laura.sicuariza@tecniled.com',
+            password='Prueba123!', first_name='Laura Daniela', last_name='Sicuariza Gómez',
+            rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.client.force_login(admin)
+        resp = self.client.get(reverse('crear_usuario'))
+        self.assertContains(resp, 'Mostrar contraseña')
+        self.assertContains(resp, 'js/ver_contrasena.js')
