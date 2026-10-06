@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import ProductoForm, ProveedorForm
+from .forms import InactivarProveedorForm, ProductoForm, ProveedorEditarForm, ProveedorForm
 from .models import Producto, Proveedor
 
 
@@ -136,3 +136,82 @@ def crear_proveedor(request):
         form = ProveedorForm()
 
     return render(request, 'productos/proveedores_crear.html', {'form': form})
+
+
+
+
+@login_required
+@permission_required('Usuarios.gestionar_compras', raise_exception=True)
+def editar_proveedor(request, pk):
+    """G1-137: actualiza contacto/dirección/correo. Nombre y NIT no se modifican."""
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+
+    if request.method == 'POST':
+        form = ProveedorEditarForm(request.POST, instance=proveedor)
+        if form.is_valid():
+            proveedor = form.save()
+            elegidos = form.cleaned_data['productos']
+            # Los desmarcados quedan sin proveedor; los marcados pasan a este proveedor
+            proveedor.productos.exclude(pk__in=elegidos).update(proveedor=None)
+            elegidos.update(proveedor=proveedor)
+            messages.success(request, f'Proveedor "{proveedor.nombre}" actualizado correctamente.')
+            return redirect('proveedores_lista')
+    else:
+        form = ProveedorEditarForm(instance=proveedor)
+
+    return render(request, 'productos/proveedores_crear.html', {
+        'form': form,
+        'proveedor': proveedor,  # su presencia activa el "modo edición" en la plantilla
+    })
+    
+    
+    
+
+
+@login_required
+@permission_required('Usuarios.gestionar_compras', raise_exception=True)
+@require_POST
+def inactivar_proveedor(request, pk):
+    """G1-138: inactiva un proveedor registrando el motivo. No elimina nada."""
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+
+    # Volver a la misma página de la lista (con su búsqueda/paginación).
+    # Solo se acepta una ruta interna del propio sitio.
+    siguiente = request.POST.get('next', '')
+    if not url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+        siguiente = reverse('proveedores_lista')
+
+    if not proveedor.activo:
+        messages.error(request, f'El proveedor "{proveedor.nombre}" ya está inactivo.')
+        return redirect(siguiente)
+
+    form = InactivarProveedorForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, form.errors['motivo'][0])
+        return redirect(siguiente)
+
+    proveedor.inactivar(form.cleaned_data['motivo'])
+    messages.success(request, f'Proveedor "{proveedor.nombre}" inactivado correctamente.')
+    return redirect(siguiente)
+
+
+
+
+@login_required
+@permission_required('Usuarios.gestionar_compras', raise_exception=True)
+@require_POST
+def reactivar_proveedor(request, pk):
+    """Vuelve a activar un proveedor que había sido inactivado."""
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+
+    siguiente = request.POST.get('next', '')
+    if not url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+        siguiente = reverse('proveedores_lista')
+
+    if proveedor.activo:
+        messages.error(request, f'El proveedor "{proveedor.nombre}" ya está activo.')
+        return redirect(siguiente)
+
+    proveedor.reactivar()
+    messages.success(request, f'Proveedor "{proveedor.nombre}" reactivado correctamente.')
+    return redirect(siguiente)
