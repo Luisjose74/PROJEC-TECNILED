@@ -1,3 +1,8 @@
+from django.conf import settings
+from django.core.mail import send_mail
+from .models import CodigoRecuperacion
+from .forms import SolicitarRecuperacionForm
+
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -121,3 +126,35 @@ def editar_rol(request, usuario_id):
         form = EditarRolForm(instance=usuario)
 
     return render(request, 'usuarios_editar_rol.html', {'form': form, 'usuario': usuario})
+
+def recuperar_contrasena(request):
+    if request.user.is_authenticated:
+        return redirect('inicio')
+
+    if request.method == 'POST':
+        form = SolicitarRecuperacionForm(request.POST)
+        if form.is_valid():
+            correo = form.cleaned_data['correo'].strip().lower()
+            usuario = Usuario.objects.filter(email=correo).first()
+            # Solo cuentas activas reciben código (las bloqueadas no se saltan el bloqueo)
+            if usuario and usuario.estado_cuenta == Usuario.EstadoCuenta.ACTIVA:
+                _, codigo = CodigoRecuperacion.generar(usuario)
+                send_mail(
+                    subject='Código de recuperación - TECNILED',
+                    message=(
+                        f'Hola {usuario.first_name or usuario.email},\n\n'
+                        f'Tu código de recuperación es: {codigo}\n'
+                        f'Es válido por {CodigoRecuperacion.VIGENCIA_MINUTOS} minutos y solo se puede usar una vez.\n\n'
+                        'Si no lo solicitaste, ignora este mensaje.'
+                    ),
+                    from_email=None,
+                    recipient_list=[usuario.email],
+                )
+            # Mismo mensaje exista o no el correo (no revela qué cuentas existen)
+            request.session['recuperacion_correo'] = correo
+            messages.success(request, 'Si el correo está registrado, te enviamos un código de recuperación.')
+            return redirect('login')  # provisional: en el PASO 3 irá a la pantalla del código
+    else:
+        form = SolicitarRecuperacionForm()
+
+    return render(request, 'recuperar_contrasena.html', {'form': form})
