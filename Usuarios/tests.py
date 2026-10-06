@@ -193,6 +193,38 @@ class EditarRolTests(TestCase):
         resp = self.client.get(reverse('usuarios_lista'))
         self.assertEqual(resp.status_code, 403)
         
+class PlantillasBaseTests(TestCase):
+    """G1-1190: las pantallas de administración usan admin_base.html."""
+
+    def setUp(self):
+        # Antes de cada prueba: crear un administrador e iniciar sesión
+        self.admin = Usuario.objects.create_user(
+            username='luis.silva@tecniled.com', email='luis.silva@tecniled.com',
+            password='Prueba123!', first_name='Luis José', last_name='Silva Fajardo',
+            rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.client.force_login(self.admin)
+
+    def test_usuarios_lista_usa_admin_base(self):
+        # 1) Abrir la página /usuarios/
+        resp = self.client.get(reverse('usuarios_lista'))
+        # 2) Debe usar la plantilla del panel...
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        # 3) ...y NO la plantilla de la tienda
+        self.assertTemplateNotUsed(resp, 'base.html')
+
+    def test_usuarios_lista_muestra_titulo_y_miga(self):
+        # 1) Abrir la página /usuarios/
+        resp = self.client.get(reverse('usuarios_lista'))
+        # 2) El título y la miga deben decir "Gestión de usuarios" (con tilde)
+        self.assertContains(resp, 'Gestión de usuarios')
+        
+    def test_usuarios_crear_usa_admin_base(self):
+        resp = self.client.get(reverse('crear_usuario'))
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        self.assertTemplateNotUsed(resp, 'base.html')
+        self.assertContains(resp, 'Nuevo administrador')
+        
 class BloqueoCuentaTests(TestCase):
     def setUp(self):
         self.usuario = Usuario.objects.create_user(
@@ -296,3 +328,22 @@ class CodigoRecuperacionTests(TestCase):
         self.assertIsNone(CodigoRecuperacion.ultimo_vigente(self.usuario))
         objeto, _ = CodigoRecuperacion.generar(self.usuario)
         self.assertEqual(CodigoRecuperacion.ultimo_vigente(self.usuario), objeto)
+
+class VerContrasenaTests(TestCase):
+    """Botón del ojo para mostrar u ocultar la contraseña."""
+
+    def test_login_tiene_boton_del_ojo(self):
+        resp = self.client.get(reverse('login'))
+        self.assertContains(resp, 'Mostrar contraseña')
+        self.assertContains(resp, 'js/ver_contrasena.js')
+
+    def test_crear_usuario_tiene_boton_del_ojo(self):
+        admin = Usuario.objects.create_user(
+            username='laura.sicuariza@tecniled.com', email='laura.sicuariza@tecniled.com',
+            password='Prueba123!', first_name='Laura Daniela', last_name='Sicuariza Gómez',
+            rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.client.force_login(admin)
+        resp = self.client.get(reverse('crear_usuario'))
+        self.assertContains(resp, 'Mostrar contraseña')
+        self.assertContains(resp, 'js/ver_contrasena.js')
