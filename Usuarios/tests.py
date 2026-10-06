@@ -224,6 +224,23 @@ class PlantillasBaseTests(TestCase):
         self.assertTemplateUsed(resp, 'admin_base.html')
         self.assertTemplateNotUsed(resp, 'base.html')
         self.assertContains(resp, 'Nuevo administrador')
+                
+    def test_usuarios_editar_rol_usa_admin_base(self):
+        # Usuaria a la que el administrador le va a editar el rol
+        giselle = Usuario.objects.create_user(
+            username='giselle.velasquez@tecniled.com', email='giselle.velasquez@tecniled.com',
+            password='Prueba123!', first_name='Giselle Vanessa', last_name='Velásquez Albarracín',
+            rol=Usuario.Rol.CONTROL_INVENTARIO,
+        )
+        
+        # Abrir /usuarios/<id de Giselle>/editar-rol/
+        resp = self.client.get(reverse('editar_rol', args=[giselle.pk]))
+        # Debe usar la plantilla del panel y no la de la tienda
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        self.assertTemplateNotUsed(resp, 'base.html')
+        # La miga de pan debe decir "Editar rol"
+        self.assertContains(resp, 'Editar rol')
+        
         
 class BloqueoCuentaTests(TestCase):
     def setUp(self):
