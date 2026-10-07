@@ -6,21 +6,20 @@
     la etiqueta url de Django con el nombre de esa ruta.
   - Las funciones de JavaScript (abrirMenuMovil, abrirCarrito...) están en static/js/main.js
 -->
+<div>
+  
+</div>
 <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-20">
 
-      <!-- 1. Logo -->
-      <a href="{% url 'inicio' %}" class="flex items-center gap-3 group">
-        <div class="bg-[#F2AE30] p-0.5 rounded-xl group-hover:bg-[#d99b28] transition-colors w-10 h-10 overflow-hidden shadow-sm flex items-center justify-center">
-          <img src="{% static 'img/logo_tecniled.jpg' %}" alt="Logo TECNILED"
-               class="w-full h-full object-contain rounded-lg bg-white transition-transform duration-300 group-hover:scale-110">
-        </div>
-        <span class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">
-          TECNI<span class="text-[#F2AE30]">LED</span>
-        </span>
-      </a>
-
+<!-- 1. Logo -->
+<a href="{% url 'inicio' %}" aria-label="TECNILED - Inicio" class="flex items-center gap-3 group">
+  <div class="w-12 h-12 shrink-0 flex items-center justify-center">
+    <img src="{% static 'img/logo_tecniled.png' %}" alt="" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110">
+  </div>
+  <span class="font-black tracking-tight"><span class="text-xl text-gray-900 dark:text-white">TECNI</span><span class="text-2xl text-sky-600 dark:text-sky-400">L</span><span class="text-2xl text-green-600 dark:text-green-400">E</span><span class="text-2xl text-red-600 dark:text-red-500">D</span></span>
+</a>
       <!-- 2. Menú de escritorio (se oculta en celulares con "hidden md:flex") -->
       <nav class="hidden md:flex gap-2 lg:gap-4 items-center">
 
