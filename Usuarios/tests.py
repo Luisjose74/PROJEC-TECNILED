@@ -241,6 +241,17 @@ class PlantillasBaseTests(TestCase):
         # La miga de pan debe decir "Editar rol"
         self.assertContains(resp, 'Editar rol')
         
+    def test_menu_lateral_enlaza_a_proveedores(self):
+        # El enlace "Proveedores" del menú lateral debe llevar a /proveedores/
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, 'href="' + reverse('proveedores_lista') + '"')
+
+    def test_proveedores_lista_usa_admin_base(self):
+        # La página de proveedores abre bien desde el panel
+        resp = self.client.get(reverse('proveedores_lista'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'admin_base.html')
+                
         
 class BloqueoCuentaTests(TestCase):
     def setUp(self):
