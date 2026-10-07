@@ -15,7 +15,7 @@
     document.documentElement.classList.add('js');
 
     // Se aplica ANTES de pintar la página para que no "parpadee".
-    // Usa la misma clave "theme" que base_admin.html, así el modo se comparte
+    // Usa la misma clave "theme" que admin_base.html, así el modo se comparte
     // entre la tienda y el panel.
     var temaGuardado = localStorage.getItem('theme');
     var sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
