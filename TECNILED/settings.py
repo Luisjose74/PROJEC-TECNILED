@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Usuarios',
     'productos',
+    'sistema',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'TECNILED.urls'
+
+BACKUP_DIR = BASE_DIR / 'backups'   # dónde se guardan los respaldos
+LOGIN_URL = 'login'                 # login_required redirige a /login/
 
 TEMPLATES = [
     {
