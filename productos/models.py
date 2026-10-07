@@ -10,6 +10,8 @@ class Proveedor(models.Model):
     contacto = models.CharField('Persona de contacto', max_length=100, blank=True)
     direccion = models.CharField('Dirección', max_length=200, blank=True)
     activo = models.BooleanField(default=True)
+    motivo_inactivacion = models.TextField('Motivo de inactivación', blank=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = 'proveedores'
@@ -17,6 +19,25 @@ class Proveedor(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    
+    def inactivar(self, motivo):
+        """G1-138: pasa a inactivo guardando el motivo. No borra nada del proveedor."""
+        if not self.activo:
+            raise ValueError('El proveedor ya está inactivo.')
+        self.activo = False
+        self.motivo_inactivacion = motivo
+        # fecha_actualizacion debe ir en update_fields para que auto_now la actualice
+        self.save(update_fields=['activo', 'motivo_inactivacion', 'fecha_actualizacion'])
+        
+
+    def reactivar(self):
+        """Vuelve a activar un proveedor inactivo y limpia el motivo anterior."""
+        if self.activo:
+            raise ValueError('El proveedor ya está activo.')
+        self.activo = True
+        self.motivo_inactivacion = ''
+        self.save(update_fields=['activo', 'motivo_inactivacion', 'fecha_actualizacion'])
 
 
 class Producto(models.Model):

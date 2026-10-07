@@ -1,5 +1,5 @@
 {% extends 'admin_base.html' %}
-{% block title %}Registrar proveedor - TECNILED{% endblock %}
+{% block title %}{% if proveedor %}Editar proveedor{% else %}Registrar proveedor{% endif %} - TECNILED{% endblock %}
 {% block titulo_seccion %}Proveedores{% endblock %}
 {% block migas_actual %}Proveedores{% endblock %}
 {% block content %}
@@ -7,8 +7,8 @@
 
   <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start shrink-0">
     <div>
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nuevo proveedor</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Completa los datos del proveedor</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">{% if proveedor %}Editar proveedor{% else %}Nuevo proveedor{% endif %}</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{% if proveedor %}Actualiza los datos de contacto del proveedor{% else %}Completa los datos del proveedor{% endif %}</p>
     </div>
     <a href="{% url 'proveedores_lista' %}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -20,20 +20,25 @@
 
     <div>
       <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nombre de la empresa *</label>
-      {{ form.nombre }}
-      {% for error in form.nombre.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      {% if proveedor %}
+        <input type="text" value="{{ proveedor.nombre }}" disabled
+          class="w-full bg-gray-100 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+      {% else %}
+        {{ form.nombre }}
+        {% for error in form.nombre.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      {% endif %}
     </div>
 
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">NIT *</label>
-        {{ form.nit }}
-        {% for error in form.nit.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Persona de contacto</label>
-        {{ form.contacto }}
-        {% for error in form.contacto.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        {% if proveedor %}
+          <input type="text" value="{{ proveedor.nit }}" disabled
+            class="w-full bg-gray-100 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+        {% else %}
+          {{ form.nit }}
+          {% for error in form.nit.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        {% endif %}
       </div>
     </div>
 
@@ -73,10 +78,16 @@
       {% for error in form.productos.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
     </div>
 
+
+
+    {% if not proveedor %}
     <label class="flex items-center gap-3 cursor-pointer">
       {{ form.activo }}
       <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Proveedor activo</span>
     </label>
+    {% endif %}
+
+
 
     {% if form.non_field_errors %}
     <p class="text-sm text-red-500 font-medium">{{ form.non_field_errors.0 }}</p>
@@ -87,7 +98,7 @@
         Cancelar
       </a>
       <button type="submit" class="px-5 py-2.5 bg-[#F2AE30] hover:bg-[#d99b28] text-black font-bold rounded-xl transition-colors shadow-lg">
-        Guardar Proveedor
+        {% if proveedor %}Guardar cambios{% else %}Guardar Proveedor{% endif %}
       </button>
     </div>
   </form>

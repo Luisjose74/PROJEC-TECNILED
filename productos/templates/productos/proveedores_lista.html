@@ -28,6 +28,7 @@
           <th class="p-4 font-semibold">Correo</th>
           <th class="p-4 font-semibold">Productos</th>
           <th class="p-4 font-semibold">Estado</th>
+          <th class="p-4 font-semibold text-right">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -57,9 +58,40 @@
               {% if p.activo %}Activo{% else %}Inactivo{% endif %}
             </span>
           </td>
+
+
+          <td class="p-4">
+            <div class="flex items-center justify-end gap-1">
+              <a href="{% url 'editar_proveedor' p.pk %}" title="Editar" class="inline-flex items-center justify-center w-8 h-8 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </a>
+              {% if p.activo %}
+              <button type="button" title="Inactivar" data-inactivar-url="{% url 'inactivar_proveedor' p.pk %}" data-nombre="{{ p.nombre }}"
+                class="js-inactivar inline-flex items-center justify-center w-8 h-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+              {% else %}
+              <button type="button" title="Reactivar proveedor" data-reactivar-url="{% url 'reactivar_proveedor' p.pk %}" data-nombre="{{ p.nombre }}" data-motivo="{{ p.motivo_inactivacion }}"
+                class="js-reactivar inline-flex items-center justify-center w-8 h-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+
+
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="p-8 text-center text-gray-500">No se encontraron proveedores.</td></tr>
+                <tr>
+          <td colspan="7" class="p-8 text-center text-gray-500">
+            {% if query %}
+              No se encontraron proveedores que coincidan con "{{ query }}".
+              <a href="{% url 'proveedores_lista' %}" class="text-sky-500 hover:underline font-semibold ml-1">Ver todos</a>
+            {% else %}
+              Aún no hay proveedores registrados.
+            {% endif %}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -77,4 +109,166 @@
   </div>
   {% endif %}
 </div>
+
+
+
+
+{# G1-138: modal de confirmación para inactivar proveedor #}
+<div id="modal-inactivar" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="modal-inactivar-titulo">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="mb-4">
+      <h2 id="modal-inactivar-titulo" class="text-xl font-bold text-gray-900 dark:text-white">Inactivar proveedor</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Vas a inactivar a <strong id="modal-inactivar-nombre" class="text-gray-700 dark:text-gray-200"></strong>.
+        Su información y su historial se conservan, pero ya no podrá asociarse a nuevas compras.
+      </p>
+    </div>
+
+    <form id="form-inactivar" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <label for="motivo-inactivar" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Motivo de la inactivación *</label>
+      <textarea id="motivo-inactivar" name="motivo" rows="3" required minlength="5" maxlength="500"
+        placeholder="Ej: Incumplió los tiempos de entrega"
+        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F2AE30] outline-none resize-none"></textarea>
+      <p class="text-xs text-gray-400 mt-1 text-right"><span id="motivo-contador">0</span>/500</p>
+
+      <div class="flex gap-3 justify-end mt-4">
+        <button type="button" id="cancelar-inactivar"
+          class="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+          Cancelar
+        </button>
+        
+        <button type="submit" id="confirmar-inactivar" disabled
+          class="px-5 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Inactivar proveedor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div id="modal-reactivar" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="modal-reactivar-titulo">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="mb-4">
+      <h2 id="modal-reactivar-titulo" class="text-xl font-bold text-gray-900 dark:text-white">Reactivar proveedor</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Vas a reactivar a <strong id="modal-reactivar-nombre" class="text-gray-700 dark:text-gray-200"></strong>.
+        Volverá a estar disponible para nuevas compras.
+      </p>
+      <p id="modal-reactivar-motivo-bloque" class="hidden text-xs text-gray-500 dark:text-gray-400 mt-3 bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3">
+        <span class="font-semibold">Motivo de la inactivación:</span>
+        <span id="modal-reactivar-motivo"></span>
+      </p>
+    </div>
+
+    <form id="form-reactivar" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <div class="flex gap-3 justify-end mt-4">
+        <button type="button" id="cancelar-reactivar"
+          class="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+          Cancelar
+        </button>
+        <button type="submit" id="confirmar-reactivar"
+          class="px-5 py-2.5 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Reactivar proveedor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  var modal = document.getElementById('modal-reactivar');
+  var form = document.getElementById('form-reactivar');
+  var nombre = document.getElementById('modal-reactivar-nombre');
+  var bloqueMotivo = document.getElementById('modal-reactivar-motivo-bloque');
+  var textoMotivo = document.getElementById('modal-reactivar-motivo');
+  var confirmar = document.getElementById('confirmar-reactivar');
+
+  function abrir(btn) {
+    form.action = btn.dataset.reactivarUrl;
+    nombre.textContent = btn.dataset.nombre;
+    var motivo = btn.dataset.motivo || '';
+    textoMotivo.textContent = motivo;
+    bloqueMotivo.classList.toggle('hidden', !motivo);
+    confirmar.disabled = false;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    confirmar.focus();
+  }
+
+  function cerrar() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  document.querySelectorAll('.js-reactivar').forEach(function (btn) {
+    btn.addEventListener('click', function () { abrir(btn); });
+  });
+
+  form.addEventListener('submit', function () { confirmar.disabled = true; }); // evita doble envío
+  document.getElementById('cancelar-reactivar').addEventListener('click', cerrar);
+  modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) cerrar();
+  });
+})();
+</script>
+
+<script>
+(function () {
+  var modal = document.getElementById('modal-inactivar');
+  var form = document.getElementById('form-inactivar');
+  var nombre = document.getElementById('modal-inactivar-nombre');
+  var motivo = document.getElementById('motivo-inactivar');
+  var contador = document.getElementById('motivo-contador');
+  var confirmar = document.getElementById('confirmar-inactivar');
+
+  function abrir(url, nombreProveedor) {
+    form.action = url;
+    nombre.textContent = nombreProveedor;
+    motivo.value = '';
+    contador.textContent = '0';
+    confirmar.disabled = true;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    motivo.focus();
+  }
+
+  function cerrar() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  document.querySelectorAll('.js-inactivar').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      abrir(btn.dataset.inactivarUrl, btn.dataset.nombre);
+    });
+  });
+
+  // El botón "Inactivar" solo se habilita con un motivo de 5+ caracteres (sin contar espacios sobrantes)
+  motivo.addEventListener('input', function () {
+    contador.textContent = motivo.value.length;
+    confirmar.disabled = motivo.value.trim().length < 5;
+  });
+
+  form.addEventListener('submit', function (e) {
+    if (motivo.value.trim().length < 5) { e.preventDefault(); return; }
+    confirmar.disabled = true; // evita doble envío
+  });
+
+  document.getElementById('cancelar-inactivar').addEventListener('click', cerrar);
+  modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) cerrar();
+  });
+})();
+</script>
+
 {% endblock %}
