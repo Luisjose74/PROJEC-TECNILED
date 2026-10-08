@@ -1,0 +1,112 @@
+[
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 1,
+    "fields": {
+      "pregunta": "¿Cómo inicio sesión?",
+      "respuesta": "Haz clic en el ícono de usuario en la parte superior y escribe tu correo y contraseña. Con el botón del ojo puedes ver lo que escribiste.",
+      "categoria": "cuenta",
+      "orden": 1,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 2,
+    "fields": {
+      "pregunta": "¿Qué hago si olvidé mi contraseña?",
+      "respuesta": "En la pantalla de inicio de sesión haz clic en \"¿Olvidaste tu contraseña?\". Te llegará un código al correo para crear una nueva.",
+      "categoria": "cuenta",
+      "orden": 2,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 3,
+    "fields": {
+      "pregunta": "¿Por qué se bloqueó mi cuenta?",
+      "respuesta": "Por seguridad, la cuenta se bloquea después de varios intentos fallidos de inicio de sesión. Espera unos minutos o comunícate con el administrador.",
+      "categoria": "cuenta",
+      "orden": 3,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 4,
+    "fields": {
+      "pregunta": "¿Cómo veo los productos destacados?",
+      "respuesta": "En la página de inicio de la tienda aparecen los productos destacados. Haz clic en uno para ver su detalle.",
+      "categoria": "compras",
+      "orden": 1,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 5,
+    "fields": {
+      "pregunta": "¿Qué tipo de productos vende TECNILED?",
+      "respuesta": "Productos de iluminación LED y decorativa: eléctricos, interiores, ferretería e iluminación.",
+      "categoria": "compras",
+      "orden": 2,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 6,
+    "fields": {
+      "pregunta": "¿Cómo registro un producto nuevo?",
+      "respuesta": "En el panel entra a Gestión de productos y haz clic en Nuevo producto. Completa el nombre, precio, stock y la imagen, y guarda.",
+      "categoria": "inventario",
+      "orden": 1,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 7,
+    "fields": {
+      "pregunta": "¿Cómo registro un proveedor?",
+      "respuesta": "En el panel entra a Proveedores, haz clic en Nuevo proveedor, completa los datos y selecciona los productos que suministra.",
+      "categoria": "inventario",
+      "orden": 2,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 8,
+    "fields": {
+      "pregunta": "¿Cómo creo una cuenta para un empleado?",
+      "respuesta": "En el panel entra a Usuarios y haz clic en Nuevo administrador. Llena los datos y elige el rol: Administrador o Control de inventario.",
+      "categoria": "administracion",
+      "orden": 1,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 9,
+    "fields": {
+      "pregunta": "¿Cómo cambio el rol de un usuario?",
+      "respuesta": "En Usuarios busca a la persona y haz clic en Editar rol. Los permisos cambian según el rol que elijas.",
+      "categoria": "administracion",
+      "orden": 2,
+      "activa": true
+    }
+  },
+  {
+    "model": "ayuda.preguntafrecuente",
+    "pk": 10,
+    "fields": {
+      "pregunta": "¿Cómo hago una copia de seguridad?",
+      "respuesta": "En el panel entra a Copias de seguridad y haz clic en Generar respaldo. Luego puedes descargarlo o restaurarlo si se pierde información.",
+      "categoria": "administracion",
+      "orden": 3,
+      "activa": true
+    }
+  }
+]
