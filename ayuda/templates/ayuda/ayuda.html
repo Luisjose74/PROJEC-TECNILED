@@ -1,0 +1,81 @@
+{% extends plantilla_base %}
+{% load static %}
+{% block title %}Ayuda - TECNILED{% endblock %}
+{% block titulo_seccion %}Ayuda{% endblock %}
+{% block migas_actual %}Ayuda{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+
+  <!-- ENCABEZADO -->
+  <div class="text-center">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">¿En qué te podemos ayudar?</h2>
+    <p class="mt-2 text-gray-500 dark:text-gray-400">Busca tu duda o revisa la guía de cada módulo.</p>
+  </div>
+
+  <!-- BUSCADOR -->
+  <form method="get" action="{% url 'ayuda' %}" role="search" class="flex gap-2">
+    <label for="buscar-ayuda" class="sr-only">Buscar en la ayuda</label>
+    <input type="search" id="buscar-ayuda" name="q" value="{{ busqueda }}" placeholder="Ej: contraseña, proveedor, respaldo..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F2AE30]">
+    <button type="submit" class="px-5 py-3 rounded-xl bg-[#F2AE30] hover:bg-[#d99b28] text-black font-bold transition-colors">Buscar</button>
+  </form>
+
+  {% if busqueda %}
+  <p class="text-sm text-gray-500 dark:text-gray-400">
+    Resultados para "<span class="font-semibold">{{ busqueda }}</span>" · <a href="{% url 'ayuda' %}" class="text-[#F2AE30] hover:underline">Ver todas</a>
+  </p>
+  {% endif %}
+
+  <!-- PREGUNTAS FRECUENTES (acordeón) -->
+  <section aria-labelledby="titulo-preguntas">
+    <h3 id="titulo-preguntas" class="text-xl font-bold text-gray-900 dark:text-white mb-4">Preguntas frecuentes</h3>
+
+    {% regroup preguntas by get_categoria_display as grupos %}
+    {% for grupo in grupos %}
+    <div class="mb-6">
+      <h4 class="text-sm font-bold uppercase tracking-wider text-[#F2AE30] mb-2">{{ grupo.grouper }}</h4>
+      <div class="space-y-2">
+        {% for p in grupo.list %}
+        <details class="group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl">
+          <summary class="list-none flex items-center justify-between cursor-pointer px-5 py-4 font-semibold text-gray-800 dark:text-gray-100">
+            {{ p.pregunta }}
+            <span class="transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+          </summary>
+          <div class="px-5 pb-4 text-gray-600 dark:text-gray-300">{{ p.respuesta|linebreaksbr }}</div>
+        </details>
+        {% endfor %}
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-gray-500 dark:text-gray-400 py-8">No encontramos preguntas relacionadas. Intenta con otra palabra.</p>
+    {% endfor %}
+  </section>
+
+  <!-- MANUAL POR MÓDULO -->
+  <section aria-labelledby="titulo-manual">
+    <h3 id="titulo-manual" class="text-xl font-bold text-gray-900 dark:text-white mb-4">Guía rápida por módulo</h3>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl">
+        <h4 class="font-bold text-gray-900 dark:text-white">Usuarios</h4>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Crea cuentas internas, asigna un rol (Administrador, Control de inventario o Cliente) y cambia el rol cuando sea necesario.</p>
+      </div>
+      <div class="p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl">
+        <h4 class="font-bold text-gray-900 dark:text-white">Productos</h4>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Registra productos con su precio, stock e imagen, y marca los destacados que aparecen en la tienda.</p>
+      </div>
+      <div class="p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl">
+        <h4 class="font-bold text-gray-900 dark:text-white">Proveedores</h4>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Registra, edita, inactiva o reactiva proveedores y asígnales los productos que suministran.</p>
+      </div>
+      <div class="p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl">
+        <h4 class="font-bold text-gray-900 dark:text-white">Copias de seguridad</h4>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Genera una copia de la base de datos, descárgala o restáurala si se pierde información.</p>
+      </div>
+    </div>
+
+    <a href="{% static 'docs/manual_usuario.pdf' %}" target="_blank" rel="noopener" class="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#F2AE30] text-[#F2AE30] font-bold hover:bg-[#F2AE30] hover:text-black transition-colors">
+      📄 Manual de usuario (PDF)
+    </a>
+  </section>
+
+</div>
+{% endblock %}
