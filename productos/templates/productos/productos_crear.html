@@ -53,6 +53,13 @@
     </div>
 
     <div>
+      <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Proveedor</label>
+      {{ form.proveedor }}
+      {% for error in form.proveedor.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Registra proveedores en la pestaña Proveedores para vincularlos.</p>
+    </div>
+
+    <div>
       <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Imagen</label>
       <div class="space-y-4">
         <div class="flex items-center justify-center w-full">

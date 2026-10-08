@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Usuarios',
     'productos',
+    'sistema',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'TECNILED.urls'
+
+BACKUP_DIR = BASE_DIR / 'backups'   # dónde se guardan los respaldos
+LOGIN_URL = 'login'                 # login_required redirige a /login/
 
 TEMPLATES = [
     {
@@ -138,6 +142,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 AUTH_USER_MODEL = 'Usuarios.Usuario'
+
+# Página a la que Django envía a quien no ha iniciado sesión
+LOGIN_URL = 'login'
 
 # Archivos subidos por los usuarios (imágenes de productos)
 MEDIA_URL = 'media/'
