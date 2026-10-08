@@ -261,6 +261,18 @@ class PlantillasBaseTests(TestCase):
         self.assertContains(resp, 'href="' + reverse('respaldos_lista') + '"')
         self.assertContains(resp, 'Copias de seguridad')   
     
+    def test_ruta_de_prueba_eliminada(self):
+        # La página de prueba /productos/prueba/ ya no debe existir
+        resp = self.client.get('/productos/prueba/')
+        self.assertEqual(resp.status_code, 404)
+
+    def test_tienda_usa_carpeta_partials(self):
+        # La tienda arma su header y footer desde template/partials/
+        resp = self.client.get(reverse('inicio'))
+        self.assertTemplateUsed(resp, 'base.html')
+        self.assertTemplateUsed(resp, 'partials/header.html')
+        self.assertTemplateUsed(resp, 'partials/footer.html')
+                
         
 class BloqueoCuentaTests(TestCase):
     def setUp(self):

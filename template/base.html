@@ -35,7 +35,7 @@
 </head>
 <body class="font-sans antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen flex flex-col transition-colors">
 
-  {% include 'partiarls/header.html' %}
+  {% include 'partials/header.html' %}
 
   <!-- Mensajes de Django: aparecen flotando arriba a la derecha y se ocultan solos -->
   {% if messages %}
@@ -55,9 +55,9 @@
     {% block content %}{% endblock %}
   </main>
 
-  {% include 'partiarls/footer.html' %}
-  {% include 'partiarls/accesibilidad.html' %}
-  {% include 'partiarls/carrito.html' %}
+  {% include 'partials/footer.html' %}
+  {% include 'partials/accesibilidad.html' %}
+  {% include 'partials/carrito.html' %}
 
   <script src="{% static 'js/main.js' %}"></script>
 </body>
