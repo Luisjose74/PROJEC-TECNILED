@@ -16,14 +16,11 @@
                     respaldo del estado actual.</p>
             </div>
 
-            <div
+                        <div
                 class="mb-6 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                <p><span class="font-semibold">Fecha:</span> {{
-                    respaldo.fecha|date:"d/m/Y H:i" }}</p>
-                <p><span class="font-semibold">Tamaño:</span> {{
-                    respaldo.tamano|filesizeformat }}</p>
-                <p><span class="font-semibold">Tipo:</span> {{
-                    respaldo.get_tipo_display }}</p>
+                <p><span class="font-semibold">Fecha:</span> {{ respaldo.fecha|date:"d/m/Y H:i" }}</p>
+                <p><span class="font-semibold">Tamaño:</span> {{ respaldo.tamano|filesizeformat }}</p>
+                <p><span class="font-semibold">Tipo:</span> {{ respaldo.get_tipo_display }}</p>
             </div>
 
             <form method="post" class="space-y-5">
