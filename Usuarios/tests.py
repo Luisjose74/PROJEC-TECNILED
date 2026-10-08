@@ -224,6 +224,55 @@ class PlantillasBaseTests(TestCase):
         self.assertTemplateUsed(resp, 'admin_base.html')
         self.assertTemplateNotUsed(resp, 'base.html')
         self.assertContains(resp, 'Nuevo administrador')
+                
+    def test_usuarios_editar_rol_usa_admin_base(self):
+        # Usuaria a la que el administrador le va a editar el rol
+        giselle = Usuario.objects.create_user(
+            username='giselle.velasquez@tecniled.com', email='giselle.velasquez@tecniled.com',
+            password='Prueba123!', first_name='Giselle Vanessa', last_name='Velásquez Albarracín',
+            rol=Usuario.Rol.CONTROL_INVENTARIO,
+        )
+        
+        # Abrir /usuarios/<id de Giselle>/editar-rol/
+        resp = self.client.get(reverse('editar_rol', args=[giselle.pk]))
+        # Debe usar la plantilla del panel y no la de la tienda
+        self.assertTemplateUsed(resp, 'admin_base.html')
+        self.assertTemplateNotUsed(resp, 'base.html')
+        # La miga de pan debe decir "Editar rol"
+        self.assertContains(resp, 'Editar rol')
+        
+    def test_menu_lateral_enlaza_a_proveedores(self):
+        # El enlace "Proveedores" del menú lateral debe llevar a /proveedores/
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, 'href="' + reverse('proveedores_lista') + '"')
+
+    def test_proveedores_lista_usa_admin_base(self):
+        # La página de proveedores abre bien desde el panel
+        resp = self.client.get(reverse('proveedores_lista'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'admin_base.html')
+                
+    def test_menu_lateral_enlaza_a_respaldos(self):
+        # Al administrador con permiso de respaldos le aparece "Copias de seguridad"
+        from django.contrib.auth.models import Permission
+        permiso = Permission.objects.get(codename='gestionar_respaldos')
+        self.admin.user_permissions.add(permiso)
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, 'href="' + reverse('respaldos_lista') + '"')
+        self.assertContains(resp, 'Copias de seguridad')   
+    
+    def test_ruta_de_prueba_eliminada(self):
+        # La página de prueba /productos/prueba/ ya no debe existir
+        resp = self.client.get('/productos/prueba/')
+        self.assertEqual(resp.status_code, 404)
+
+    def test_tienda_usa_carpeta_partials(self):
+        # La tienda arma su header y footer desde template/partials/
+        resp = self.client.get(reverse('inicio'))
+        self.assertTemplateUsed(resp, 'base.html')
+        self.assertTemplateUsed(resp, 'partials/header.html')
+        self.assertTemplateUsed(resp, 'partials/footer.html')
+                
         
 class BloqueoCuentaTests(TestCase):
     def setUp(self):

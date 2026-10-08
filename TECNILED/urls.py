@@ -19,14 +19,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView, TemplateView  # PRUEBA
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Redirige /sistema/ directamente a /sistema/respaldos/
     path('sistema/', RedirectView.as_view(pattern_name='respaldos_lista', permanent=False)),
     path('sistema/', include('sistema.urls')),
-    path('productos/prueba/', TemplateView.as_view(template_name='prueba_admin.html')),  # PRUEBA
     path('', include('Usuarios.urls')),
     path('', include('productos.urls')),
 ]
