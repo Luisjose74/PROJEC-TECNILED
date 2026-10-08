@@ -252,6 +252,15 @@ class PlantillasBaseTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'admin_base.html')
                 
+    def test_menu_lateral_enlaza_a_respaldos(self):
+        # Al administrador con permiso de respaldos le aparece "Copias de seguridad"
+        from django.contrib.auth.models import Permission
+        permiso = Permission.objects.get(codename='gestionar_respaldos')
+        self.admin.user_permissions.add(permiso)
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, 'href="' + reverse('respaldos_lista') + '"')
+        self.assertContains(resp, 'Copias de seguridad')   
+    
         
 class BloqueoCuentaTests(TestCase):
     def setUp(self):
