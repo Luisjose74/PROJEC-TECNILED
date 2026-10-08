@@ -140,8 +140,11 @@
         {% if messages %}
         <div class="mb-4 space-y-2">
           {% for message in messages %}
-          <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium rounded-xl text-center">
-            {{ message }}
+          <div role="alert" class="flex items-center gap-3 p-4 text-sm font-medium rounded-xl border
+            {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800
+            {% else %}bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800{% endif %}">
+            <span class="flex-1 text-center">{{ message }}</span>
+            <button type="button" onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100" aria-label="Cerrar mensaje" title="Cerrar mensaje">✕</button>
           </div>
           {% endfor %}
         </div>
