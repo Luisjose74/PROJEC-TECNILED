@@ -396,3 +396,44 @@ class VerContrasenaTests(TestCase):
         resp = self.client.get(reverse('crear_usuario'))
         self.assertContains(resp, 'Mostrar contraseña')
         self.assertContains(resp, 'js/ver_contrasena.js')
+        
+        
+class MigasDePanTests(TestCase):
+    """G1-1192: migas de pan con nivel intermedio y títulos claros."""
+
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='luis.silva@tecniled.com', email='luis.silva@tecniled.com',
+            password='Prueba123!', first_name='Luis José', last_name='Silva Fajardo',
+            rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.client.force_login(self.admin)
+
+    def test_migas_son_navegacion_accesible(self):
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, 'aria-label="Migas de pan"')
+        self.assertContains(resp, 'aria-current="page"')
+
+    def test_titulo_pestana_usuarios(self):
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertContains(resp, '<title>Gestión de usuarios - TECNILED</title>')
+
+    def test_crear_usuario_tiene_miga_a_la_lista(self):
+        resp = self.client.get(reverse('crear_usuario'))
+        self.assertTemplateUsed(resp, 'partials/miga.html')
+        self.assertContains(resp, 'href="' + reverse('usuarios_lista') + '"')
+        self.assertContains(resp, 'Nuevo administrador')
+
+    def test_registrar_producto_tiene_miga_a_la_lista(self):
+        resp = self.client.get(reverse('crear_producto'))
+        self.assertTemplateUsed(resp, 'partials/miga.html')
+        self.assertContains(resp, 'Registrar producto')
+
+    def test_registrar_proveedor_tiene_miga_a_la_lista(self):
+        resp = self.client.get(reverse('crear_proveedor'))
+        self.assertTemplateUsed(resp, 'partials/miga.html')
+        self.assertContains(resp, 'Registrar proveedor')
+
+    def test_lista_no_tiene_miga_intermedia(self):
+        resp = self.client.get(reverse('usuarios_lista'))
+        self.assertTemplateNotUsed(resp, 'partials/miga.html')
