@@ -1,7 +1,11 @@
 {% extends 'admin_base.html' %}
 {% block title %}{% if proveedor %}Editar proveedor{% else %}Registrar proveedor{% endif %} - TECNILED{% endblock %}
 {% block titulo_seccion %}Proveedores{% endblock %}
-{% block migas_actual %}Proveedores{% endblock %}
+{% block migas_intermedias %}
+{% url 'proveedores_lista' as url_lista %}
+{% include 'partials/miga.html' with enlace=url_lista texto='Proveedores' %}
+{% endblock %}
+{% block migas_actual %}{% if proveedor %}Editar proveedor{% else %}Registrar proveedor{% endif %}{% endblock %}
 {% block content %}
 <div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-xl mx-auto shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col">
 

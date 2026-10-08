@@ -2,6 +2,10 @@
 {% load static %}
 {% block title %}Nuevo administrador - TECNILED{% endblock %}
 {% block titulo_seccion %}Gestión de usuarios{% endblock %}
+{% block migas_intermedias %}
+{% url 'usuarios_lista' as url_lista %}
+{% include 'partials/miga.html' with enlace=url_lista texto='Gestión de usuarios' %}
+{% endblock %}
 {% block migas_actual %}Nuevo administrador{% endblock %}
 {% block content %}
 <div class="flex justify-center">
