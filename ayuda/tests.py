@@ -74,4 +74,8 @@ class AyudaTests(TestCase):
         resp = self.client.get(reverse('usuarios_lista'))
         self.assertContains(resp, 'href="' + reverse('ayuda') + '"')
 
-# Create your tests here.
+
+    def test_boton_flotante_de_ayuda_en_la_pagina_principal(self):
+        resp = self.client.get(reverse('inicio'))
+        self.assertTemplateUsed(resp, 'partials/accesibilidad.html')
+        self.assertContains(resp, 'aria-label="Ir a la ayuda y preguntas frecuentes"')
