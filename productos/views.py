@@ -58,6 +58,28 @@ def crear_producto(request):
 
 @login_required
 @permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+def editar_producto(request, pk):
+    """G1-145: modifica un producto existente (mismo formulario del diseño, precargado)."""
+    producto = get_object_or_404(Producto, pk=pk)
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
+        if form.is_valid():
+            producto = form.save()
+            messages.success(request, f'Producto "{producto.nombre}" actualizado correctamente.')
+            return redirect('productos_lista')
+    else:
+        form = ProductoForm(instance=producto)
+
+    return render(request, 'productos/productos_crear.html', {
+        'form': form,
+        'producto': producto,  # su presencia activa el "modo edición" en la plantilla
+    })
+    
+    
+    
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
 @require_POST
 def alternar_destacado(request, producto_id):
     """Activa/desactiva 'Destacado en Inicio' (interruptor verde de la tabla)."""

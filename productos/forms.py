@@ -28,6 +28,8 @@ class ProductoForm(forms.ModelForm):
             'especificaciones': 'Características Técnicas',  # NUEVO
         }
         widgets = {
+            # FileInput simple: evita el "Actualmente / Limpiar" de Django al editar
+            'imagen': forms.FileInput(),
             'descripcion': forms.Textarea(attrs={'rows': 2}),
             'instalacion': forms.Textarea(attrs={'rows': 2}),
             # NUEVO: caja de texto más alta, con un ejemplo de cómo llenarla
@@ -52,7 +54,11 @@ class ProductoForm(forms.ModelForm):
         self.fields['imagen'].required = False
         # Selector de proveedor (como en el Figma)
         self.fields['proveedor'].empty_label = 'Sin proveedor'
-        self.fields['proveedor'].queryset = Proveedor.objects.filter(activo=True)
+                # Proveedores activos + el que ya tiene este producto (si se inactivó después),
+        # para que al editar no se pierda el vínculo por accidente.
+        self.fields['proveedor'].queryset = Proveedor.objects.filter(
+            Q(activo=True) | Q(pk=self.instance.proveedor_id)
+        )
 
 
 class ProveedorForm(forms.ModelForm):
