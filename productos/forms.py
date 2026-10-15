@@ -2,7 +2,7 @@ from django import forms
 
 from .models import Producto, Proveedor
 from django.db.models import Q
-
+from django.core.files.uploadedfile import UploadedFile
 import re
 
 
@@ -25,7 +25,49 @@ class ProductoForm(forms.ModelForm):
             'imagen': 'Imagen',
             'descripcion': 'Descripción Corta',
             'instalacion': 'Uso e Instalación',
-            'especificaciones': 'Características Técnicas',  # NUEVO
+            'especificaciones': 'Características Técnicas',  
+        }
+                # G1-147: mensajes de error en español (el proyecto está en en-us)
+        error_messages = {
+            'sku': {
+                'required': 'El código (SKU) es obligatorio.',
+                'max_length': 'El SKU no puede superar los 30 caracteres.',
+                'unique': 'Ya existe un producto con este SKU.',
+            },
+            'nombre': {
+                'required': 'El título del producto es obligatorio.',
+                'max_length': 'El título no puede superar los 150 caracteres.',
+            },
+            'categoria': {
+                'required': 'Selecciona una categoría.',
+                'invalid_choice': 'Selecciona una categoría válida de la lista.',
+            },
+            'proveedor': {
+                'invalid_choice': 'Selecciona un proveedor válido de la lista.',
+            },
+            'precio': {
+                'required': 'El precio normal es obligatorio.',
+                'invalid': 'Ingresa un precio válido (solo números).',
+                'max_digits': 'El precio es demasiado grande.',
+                'max_whole_digits': 'El precio es demasiado grande.',
+                'max_decimal_places': 'El precio solo puede tener 2 decimales.',
+            },
+            'precio_oferta': {
+                'invalid': 'Ingresa un precio de oferta válido (solo números).',
+                'max_digits': 'El precio de oferta es demasiado grande.',
+                'max_whole_digits': 'El precio de oferta es demasiado grande.',
+                'max_decimal_places': 'El precio de oferta solo puede tener 2 decimales.',
+            },
+            'stock': {
+                'required': 'El stock es obligatorio (usa 0 si no hay unidades).',
+                'invalid': 'El stock debe ser un número entero.',
+                'min_value': 'El stock no puede ser negativo.',
+            },
+            'imagen': {
+                'invalid_image': 'El archivo no es una imagen válida. Usa PNG, JPG o WEBP.',
+            },
+            'descripcion': {'required': 'La descripción corta es obligatoria.'},
+            'instalacion': {'required': 'El campo Uso e Instalación es obligatorio.'},
         }
         widgets = {
             # FileInput simple: evita el "Actualmente / Limpiar" de Django al editar
@@ -59,6 +101,52 @@ class ProductoForm(forms.ModelForm):
         self.fields['proveedor'].queryset = Proveedor.objects.filter(
             Q(activo=True) | Q(pk=self.instance.proveedor_id)
         )
+                # G1-147: el navegador también avisa antes de enviar (el servidor es la validación real)
+        self.fields['precio'].widget.attrs['min'] = '0.01'
+        self.fields['precio_oferta'].widget.attrs['min'] = '0.01'
+
+    # ---------- G1-147: validaciones ----------
+    def clean_sku(self):
+        sku = (self.cleaned_data.get('sku') or '').strip()
+        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', sku):
+            raise forms.ValidationError(
+                'El SKU solo puede tener letras, números, punto, guion (-) y guion bajo (_), sin espacios.'
+            )
+        # Duplicado sin distinguir mayúsculas ("led1" = "LED1"); al editar se ignora a sí mismo
+        if Producto.objects.filter(sku__iexact=sku).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('Ya existe un producto con este SKU.')
+        return sku
+
+    def clean_nombre(self):
+        nombre = ' '.join((self.cleaned_data.get('nombre') or '').split())  # quita espacios dobles
+        if len(nombre) < 3:
+            raise forms.ValidationError('El título debe tener al menos 3 caracteres.')
+        if Producto.objects.filter(nombre__iexact=nombre).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('Ya existe un producto con este título.')
+        return nombre
+
+    def clean_precio(self):
+        precio = self.cleaned_data.get('precio')
+        if precio is not None and precio <= 0:
+            raise forms.ValidationError('El precio debe ser mayor a 0.')
+        return precio
+
+    def clean_precio_oferta(self):
+        oferta = self.cleaned_data.get('precio_oferta')
+        if oferta is not None and oferta <= 0:
+            raise forms.ValidationError('El precio de oferta debe ser mayor a 0.')
+        return oferta
+
+    def clean_imagen(self):
+        imagen = self.cleaned_data.get('imagen')
+        # Solo se revisa una imagen NUEVA; si no suben nada, se conserva la anterior
+        if isinstance(imagen, UploadedFile):
+            if imagen.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('La imagen no puede pesar más de 5 MB.')
+            formato = getattr(getattr(imagen, 'image', None), 'format', None)
+            if formato not in ('JPEG', 'PNG', 'WEBP'):
+                raise forms.ValidationError('Formato no permitido. Usa PNG, JPG o WEBP.')
+        return imagen
 
 
 class ProveedorForm(forms.ModelForm):
