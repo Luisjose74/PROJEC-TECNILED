@@ -17,6 +17,12 @@
     })();
   </script>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- DataTables + Select2 (estilos) -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  {% block extra_head %}{% endblock %}
+
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
 {% with nombre=request.resolver_match.url_name %}
@@ -180,5 +186,34 @@
     overlay.addEventListener('click', cerrar);
   })();
 </script>
+
+<!-- jQuery: necesario para DataTables y Select2 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    {% for message in messages %}
+    Swal.fire({
+      icon: '{% if message.tags == "error" %}error{% else %}success{% endif %}',
+      title: '{% if message.tags == "error" %}Error{% else %}¡Listo!{% endif %}',
+      text: '{{ message|escapejs }}',
+      confirmButtonColor: '#F2AE30',
+      timer: 3000,
+      timerProgressBar: true
+    });
+    {% endfor %}
+  });
+</script>
+{% endif %}
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

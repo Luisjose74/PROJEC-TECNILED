@@ -1,9 +1,9 @@
-from django import forms
+import re
 
-from .models import Producto, Proveedor
+from django import forms
 from django.db.models import Q
 
-import re
+from .models import Producto, Proveedor
 
 
 class ProductoForm(forms.ModelForm):
@@ -12,7 +12,7 @@ class ProductoForm(forms.ModelForm):
         fields = [
             'sku', 'nombre', 'categoria', 'proveedor', 'precio', 'precio_oferta',
             'stock', 'imagen', 'descripcion', 'instalacion',
-            'especificaciones',  # NUEVO (HU G1-144)
+            'especificaciones', 'fecha_vencimiento' # NUEVO (HU G1-144)
         ]
         labels = {
             'sku': 'Código (SKU)',
@@ -35,6 +35,26 @@ class ProductoForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Potencia: 20W\nVoltaje: 110V\nLúmenes: 1800 lm',
             }),
+            'fecha_vencimiento': forms.DateInput(
+                attrs={'type': 'date'}, format='%Y-%m-%d'
+            ),
+        }
+        
+        error_messages = {
+            'sku': {
+                'unique': 'Ya existe un producto con este código (SKU).',
+                'required': 'El código (SKU) es obligatorio.',
+            },
+            'nombre': {
+                'required': 'El título del producto es obligatorio.',
+            },
+            'precio': {
+                'required': 'El precio normal es obligatorio.',
+                'invalid': 'Ingresa un precio válido (solo números).',
+            },
+            'descripcion': {
+                'required': 'La descripción corta es obligatoria.',
+            },
         }
 
     def __init__(self, *args, **kwargs):

@@ -66,7 +66,8 @@ class Producto(models.Model):
         'Precio de Oferta', max_digits=10, decimal_places=2, null=True, blank=True
     )
     stock = models.PositiveIntegerField('Stock Disponible', default=0)
-
+    
+    fecha_vencimiento = models.DateField('Fecha de vencimiento', null=True, blank=True)
     # --- Imagen ---
     imagen = models.ImageField('Imagen', upload_to='productos/', blank=True, null=True)
 
