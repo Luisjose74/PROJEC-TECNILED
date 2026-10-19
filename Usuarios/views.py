@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.mail import send_mail
 from .models import CodigoRecuperacion
@@ -92,7 +93,6 @@ def usuarios_lista(request):
         'query': query,
     })
 
-
 @login_required
 @permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
 def crear_usuario(request):
@@ -116,11 +116,17 @@ def editar_rol(request, usuario_id):
     if request.method == 'POST':
         form = EditarRolForm(request.POST, instance=usuario)
         if form.is_valid():
-            if usuario == request.user and form.cleaned_data['rol'] != Usuario.Rol.ADMINISTRADOR:
+            es_propia = usuario == request.user
+            correo_enviado = (request.POST.get('email') or usuario.email).strip().lower()
+            if correo_enviado != usuario.email:
+                form.add_error('email', 'El correo no se puede modificar.')
+            elif es_propia and form.cleaned_data['rol'] != Usuario.Rol.ADMINISTRADOR:
                 form.add_error('rol', 'No puedes quitarte tu propio rol de administrador.')
+            elif es_propia and form.cleaned_data['estado_cuenta'] != Usuario.EstadoCuenta.ACTIVA:
+                form.add_error('estado_cuenta', 'No puedes suspender ni bloquear tu propia cuenta.')
             else:
                 form.save()
-                messages.success(request, f'Rol de {usuario.email} actualizado.')
+                messages.success(request, f'Cuenta de {usuario.email} actualizada.')
                 return redirect('usuarios_lista')
     else:
         form = EditarRolForm(instance=usuario)
@@ -158,3 +164,31 @@ def recuperar_contrasena(request):
         form = SolicitarRecuperacionForm()
 
     return render(request, 'recuperar_contrasena.html', {'form': form})
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+def usuario_detalle(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+    # CORREGIDO: el archivo se llama usuarios_detalle.html (con "s")
+    return render(request, 'usuarios_detalle.html', {'usuario': usuario})
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+@require_POST
+def inactivar_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+
+    if usuario == request.user:
+        messages.error(request, 'No puedes inactivar tu propia cuenta.')
+    elif usuario.estado_cuenta != Usuario.EstadoCuenta.ACTIVA:
+        # Criterio 2: ya está inactivo, se impide la acción
+        messages.error(
+            request,
+            f'La cuenta de {usuario.email} ya no está activa (estado: {usuario.get_estado_cuenta_display()}).'
+        )
+    else:
+        usuario.estado_cuenta = Usuario.EstadoCuenta.SUSPENDIDA
+        usuario.save()
+        messages.success(request, f'La cuenta de {usuario.email} fue inactivada.')
+
+    return redirect('usuario_detalle', usuario_id=usuario.id)
