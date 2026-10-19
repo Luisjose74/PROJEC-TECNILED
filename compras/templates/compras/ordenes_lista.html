@@ -48,15 +48,11 @@
                 <tr
                     class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                     <td
-                        class="p-4 font-semibold text-gray-900 dark:text-white">{{
-                        o.numero_factura }}</td>
-                    <td class="p-4 text-gray-600 dark:text-gray-300">{{
-                        o.fecha|date:"d/m/Y" }}</td>
-                    <td class="p-4 text-gray-600 dark:text-gray-300">{{
-                        o.proveedor.nombre }}</td>
+                        class="p-4 font-semibold text-gray-900 dark:text-white">{{ o.numero_factura }}</td>
+                    <td class="p-4 text-gray-600 dark:text-gray-300">{{ o.fecha|date:"d/m/Y" }}</td>
+                    <td class="p-4 text-gray-600 dark:text-gray-300">{{ o.proveedor.nombre }}</td>
                     <td
-                        class="p-4 font-medium text-gray-900 dark:text-white">${{
-                        o.total|floatformat:2 }}</td>
+                        class="p-4 font-medium text-gray-900 dark:text-white">${{ o.total|floatformat:2 }}</td>
                     <td class="p-4">
                         <span
                             class="inline-flex px-2 py-1 rounded-full text-xs font-medium
@@ -68,8 +64,7 @@
                     </td>
                     <td class="p-4">
                         <div class="flex items-center justify-end gap-1">
-                            {# Provisional: en el Paso 5 este href# se cambia
-                            por el detalle de la orden #}
+                            {# Provisional: en el Paso 5 este href se cambia por el detalle de la orden #}
                             <a href="#" title="Ver detalle"
                                 class="inline-flex items-center justify-center w-8 h-8 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none"
