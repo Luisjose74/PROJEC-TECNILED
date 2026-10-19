@@ -238,8 +238,8 @@ class PlantillasBaseTests(TestCase):
         # Debe usar la plantilla del panel y no la de la tienda
         self.assertTemplateUsed(resp, 'admin_base.html')
         self.assertTemplateNotUsed(resp, 'base.html')
-        # La miga de pan debe decir "Editar rol"
-        self.assertContains(resp, 'Editar rol')
+        # La miga de pan debe decir "Editar usuario"
+        self.assertContains(resp, 'Editar usuario')
         
     def test_menu_lateral_enlaza_a_proveedores(self):
         # El enlace "Proveedores" del menú lateral debe llevar a /proveedores/
@@ -430,3 +430,40 @@ class UsuarioDetalleTests(TestCase):
     def test_sin_sesion_va_al_login(self):
         resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
         self.assertEqual(resp.status_code, 302)
+        
+class EditarUsuarioTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin@test.com', email='admin@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR)
+        self.otro = Usuario.objects.create_user(
+            username='otro@test.com', email='otro@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE, first_name='Ana')
+        self.client.force_login(self.admin)
+        self.url = reverse('editar_rol', args=[self.otro.id])
+
+    def datos(self, **extra):
+        d = {'first_name': 'Ana', 'last_name': 'Pérez', 'documento': '123',
+             'telefono': '3001234567', 'rol': 'cliente', 'estado_cuenta': 'activa'}
+        d.update(extra)
+        return d
+
+    def test_admin_actualiza_datos_permitidos(self):
+        r = self.client.post(self.url, self.datos(first_name='Ana María'))
+        self.assertRedirects(r, reverse('usuarios_lista'))
+        self.otro.refresh_from_db()
+        self.assertEqual(self.otro.first_name, 'Ana María')
+        self.assertEqual(self.otro.telefono, '3001234567')
+
+    def test_no_permite_cambiar_correo(self):
+        r = self.client.post(self.url, self.datos(email='hack@test.com'))
+        self.assertEqual(r.status_code, 200)
+        self.otro.refresh_from_db()
+        self.assertEqual(self.otro.email, 'otro@test.com')
+
+    def test_admin_no_puede_suspenderse_a_si_mismo(self):
+        url = reverse('editar_rol', args=[self.admin.id])
+        r = self.client.post(url, self.datos(rol='administrador', estado_cuenta='suspendida'))
+        self.assertEqual(r.status_code, 200)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.estado_cuenta, 'activa')

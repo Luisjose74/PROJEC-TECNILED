@@ -116,11 +116,17 @@ def editar_rol(request, usuario_id):
     if request.method == 'POST':
         form = EditarRolForm(request.POST, instance=usuario)
         if form.is_valid():
-            if usuario == request.user and form.cleaned_data['rol'] != Usuario.Rol.ADMINISTRADOR:
+            es_propia = usuario == request.user
+            correo_enviado = (request.POST.get('email') or usuario.email).strip().lower()
+            if correo_enviado != usuario.email:
+                form.add_error('email', 'El correo no se puede modificar.')
+            elif es_propia and form.cleaned_data['rol'] != Usuario.Rol.ADMINISTRADOR:
                 form.add_error('rol', 'No puedes quitarte tu propio rol de administrador.')
+            elif es_propia and form.cleaned_data['estado_cuenta'] != Usuario.EstadoCuenta.ACTIVA:
+                form.add_error('estado_cuenta', 'No puedes suspender ni bloquear tu propia cuenta.')
             else:
                 form.save()
-                messages.success(request, f'Rol de {usuario.email} actualizado.')
+                messages.success(request, f'Cuenta de {usuario.email} actualizada.')
                 return redirect('usuarios_lista')
     else:
         form = EditarRolForm(instance=usuario)
