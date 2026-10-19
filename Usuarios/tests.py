@@ -467,3 +467,62 @@ class EditarUsuarioTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.admin.refresh_from_db()
         self.assertEqual(self.admin.estado_cuenta, 'activa')
+
+
+class InactivarUsuarioTests(TestCase):
+    """G1-1174: inactivar la cuenta de un usuario."""
+
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin_inact@test.com', email='admin_inact@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.usuario = Usuario.objects.create_user(
+            username='victima@test.com', email='victima@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+        self.url = reverse('inactivar_usuario', args=[self.usuario.pk])
+
+    def test_admin_inactiva_usuario_activo_y_se_bloquea_su_acceso(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(self.url)
+        self.assertRedirects(resp, reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.SUSPENDIDA)
+        # Acceso bloqueado: ya no puede iniciar sesión con su clave correcta
+        self.client.logout()
+        resp = self.client.post(reverse('login'), {'correo': 'victima@test.com', 'contrasena': 'Prueba123!'})
+        self.assertContains(resp, 'suspendida')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_no_se_puede_inactivar_dos_veces(self):
+        self.usuario.estado_cuenta = Usuario.EstadoCuenta.SUSPENDIDA
+        self.usuario.save()
+        self.client.force_login(self.admin)
+        resp = self.client.post(self.url, follow=True)
+        self.assertContains(resp, 'ya no está activa')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.SUSPENDIDA)
+
+    def test_admin_no_puede_inactivarse_a_si_mismo(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(reverse('inactivar_usuario', args=[self.admin.pk]), follow=True)
+        self.assertContains(resp, 'No puedes inactivar tu propia cuenta')
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.estado_cuenta, Usuario.EstadoCuenta.ACTIVA)
+
+    def test_cliente_recibe_403_y_no_inactiva(self):
+        otro = Usuario.objects.create_user(
+            username='otro@test.com', email='otro@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+        self.client.force_login(otro)
+        resp = self.client.post(self.url)
+        self.assertEqual(resp.status_code, 403)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.ACTIVA)
+
+    def test_solo_acepta_post(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 405)
