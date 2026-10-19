@@ -35,15 +35,26 @@ class CrearUsuarioInternoForm(forms.ModelForm):
             usuario.save()
         return usuario
 class EditarRolForm(forms.ModelForm):
+    # Campo no permitido: se muestra pero Django ignora lo que llegue por POST
+    email = forms.EmailField(label='Correo electrónico', required=False, disabled=True)
+
     class Meta:
         model = Usuario
-        fields = ['rol', 'estado_cuenta']
+        fields = ['first_name', 'last_name', 'email', 'documento', 'telefono', 'rol', 'estado_cuenta']
+        labels = {
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+            'documento': 'Cédula',
+            'telefono': 'Teléfono',
+            'estado_cuenta': 'Estado de la cuenta',
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         clase_input = 'w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F2AE30] outline-none'
         for campo in self.fields.values():
             campo.widget.attrs['class'] = clase_input
+        self.fields['email'].widget.attrs['class'] = clase_input + ' opacity-60 cursor-not-allowed'
             
 class SolicitarRecuperacionForm(forms.Form):
     correo = forms.EmailField(label='Correo electrónico')

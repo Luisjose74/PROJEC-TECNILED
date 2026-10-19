@@ -28,7 +28,9 @@ urlpatterns = [
     path('sistema/', include('sistema.urls')),
     path('', include('Usuarios.urls')),
     path('', include('productos.urls')),
+    path('', include('compras.urls')),   
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
