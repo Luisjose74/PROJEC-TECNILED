@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.mail import send_mail
 from .models import CodigoRecuperacion
@@ -92,7 +93,6 @@ def usuarios_lista(request):
         'query': query,
     })
 
-
 @login_required
 @permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
 def crear_usuario(request):
@@ -158,3 +158,31 @@ def recuperar_contrasena(request):
         form = SolicitarRecuperacionForm()
 
     return render(request, 'recuperar_contrasena.html', {'form': form})
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+def usuario_detalle(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+    # CORREGIDO: el archivo se llama usuarios_detalle.html (con "s")
+    return render(request, 'usuarios_detalle.html', {'usuario': usuario})
+
+@login_required
+@permission_required('Usuarios.gestionar_usuarios', raise_exception=True)
+@require_POST
+def inactivar_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+
+    if usuario == request.user:
+        messages.error(request, 'No puedes inactivar tu propia cuenta.')
+    elif usuario.estado_cuenta != Usuario.EstadoCuenta.ACTIVA:
+        # Criterio 2: ya está inactivo, se impide la acción
+        messages.error(
+            request,
+            f'La cuenta de {usuario.email} ya no está activa (estado: {usuario.get_estado_cuenta_display()}).'
+        )
+    else:
+        usuario.estado_cuenta = Usuario.EstadoCuenta.SUSPENDIDA
+        usuario.save()
+        messages.success(request, f'La cuenta de {usuario.email} fue inactivada.')
+
+    return redirect('usuario_detalle', usuario_id=usuario.id)

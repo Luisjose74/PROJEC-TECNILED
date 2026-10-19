@@ -396,3 +396,37 @@ class VerContrasenaTests(TestCase):
         resp = self.client.get(reverse('crear_usuario'))
         self.assertContains(resp, 'Mostrar contraseña')
         self.assertContains(resp, 'js/ver_contrasena.js')
+
+class UsuarioDetalleTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin_det@test.com', email='admin_det@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.usuario = Usuario.objects.create_user(
+            username='ver@test.com', email='ver@test.com', password='Prueba123!',
+            first_name='Ana', last_name='Perez', documento='555', rol=Usuario.Rol.CLIENTE,
+        )
+
+    def test_admin_ve_datos_rol_y_estado(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'ver@test.com')
+        self.assertContains(resp, '555')
+        self.assertContains(resp, 'Cliente')
+        self.assertContains(resp, 'Activa')
+
+    def test_usuario_inexistente_da_404(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse('usuario_detalle', args=[9999]))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_cliente_recibe_403(self):
+        self.client.force_login(self.usuario)
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_sin_sesion_va_al_login(self):
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 302)
