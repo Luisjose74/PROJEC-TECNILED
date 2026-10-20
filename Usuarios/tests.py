@@ -526,3 +526,27 @@ class InactivarUsuarioTests(TestCase):
         self.client.force_login(self.admin)
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 405)
+        
+class MensajesTests(TestCase):
+    def renderizar(self, nivel, texto):
+        from django.contrib.messages.storage.base import Message
+        from django.template.loader import render_to_string
+
+        return render_to_string(
+            'partials/mensajes.html', {'messages': [Message(nivel, texto)]}
+        )
+
+    def test_cada_tipo_tiene_su_color(self):
+        from django.contrib.messages import constants
+
+        self.assertIn('bg-emerald-50', self.renderizar(constants.SUCCESS, 'Guardado'))
+        self.assertIn('bg-red-50', self.renderizar(constants.ERROR, 'Falló'))
+        self.assertIn('bg-amber-50', self.renderizar(constants.WARNING, 'Cuidado'))
+        self.assertIn('bg-blue-50', self.renderizar(constants.INFO, 'Dato'))
+
+    def test_mensaje_es_accesible_y_se_puede_cerrar(self):
+        from django.contrib.messages import constants
+
+        html = self.renderizar(constants.SUCCESS, 'Guardado')
+        self.assertIn('role="alert"', html)
+        self.assertIn('aria-label="Cerrar mensaje"', html)
