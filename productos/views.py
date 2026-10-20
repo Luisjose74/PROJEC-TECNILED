@@ -58,6 +58,59 @@ def crear_producto(request):
 
 @login_required
 @permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+def editar_producto(request, pk):
+    """G1-145: modifica un producto existente (mismo formulario del diseño, precargado)."""
+    producto = get_object_or_404(Producto, pk=pk)
+
+        # G1-146: un producto inactivo está retirado también de la edición
+    if not producto.activo:
+        messages.error(request, f'El producto "{producto.nombre}" está inactivo. Actívalo para poder editarlo.')
+        return redirect('productos_lista')
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
+        if form.is_valid():
+            producto = form.save()
+            messages.success(request, f'Producto "{producto.nombre}" actualizado correctamente.')
+            return redirect('productos_lista')
+    else:
+        form = ProductoForm(instance=producto)
+
+    return render(request, 'productos/productos_crear.html', {
+        'form': form,
+        'producto': producto,  # su presencia activa el "modo edición" en la plantilla
+    })
+    
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+@require_POST
+def cambiar_estado_producto(request, pk, activar):
+    """G1-146: activa o desactiva un producto (no se elimina nada).
+    `activar` llega desde urls.py: False en /desactivar/, True en /activar/."""
+    producto = get_object_or_404(Producto, pk=pk)
+
+    # Volver a la misma página de la lista (con su búsqueda/filtro/paginación).
+    # Solo se acepta una ruta interna del propio sitio.
+    siguiente = request.POST.get('next', '')
+    if not url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+        siguiente = reverse('productos_lista')
+
+    if producto.activo == activar:
+        estado = 'activo' if activar else 'inactivo'
+        messages.error(request, f'El producto "{producto.nombre}" ya está {estado}.')
+        return redirect(siguiente)
+
+    producto.activo = activar
+    producto.save(update_fields=['activo', 'actualizado_en'])
+    if activar:
+        messages.success(request, f'Producto "{producto.nombre}" activado: vuelve a estar disponible para venta y edición.')
+    else:
+        messages.success(request, f'Producto "{producto.nombre}" desactivado: queda retirado de la venta y de la edición.')
+    return redirect(siguiente)
+    
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
 @require_POST
 def alternar_destacado(request, producto_id):
     """Activa/desactiva 'Destacado en Inicio' (interruptor verde de la tabla)."""
