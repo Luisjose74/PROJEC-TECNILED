@@ -526,3 +526,15 @@ class InactivarUsuarioTests(TestCase):
         self.client.force_login(self.admin)
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 405)
+        
+        
+class IdiomaYZonaHorariaTests(TestCase):
+    def test_formulario_vacio_muestra_error_en_espanol(self):
+        from Usuarios.forms import CrearUsuarioInternoForm
+
+        form = CrearUsuarioInternoForm(data={})
+        self.assertFalse(form.is_valid())
+        self.assertIn('Este campo es obligatorio.', form.errors['email'])
+
+    def test_zona_horaria_es_bogota(self):
+        self.assertEqual(timezone.get_current_timezone_name(), 'America/Bogota')
