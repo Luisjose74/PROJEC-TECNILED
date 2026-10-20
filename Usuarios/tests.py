@@ -550,3 +550,22 @@ class MensajesTests(TestCase):
         html = self.renderizar(constants.SUCCESS, 'Guardado')
         self.assertIn('role="alert"', html)
         self.assertIn('aria-label="Cerrar mensaje"', html)
+        
+class ModalConfirmacionTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin_modal@test.com', email='admin_modal@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.usuario = Usuario.objects.create_user(
+            username='modal@test.com', email='modal@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+        self.client.force_login(self.admin)
+
+    def test_inactivar_usuario_pide_confirmacion_con_el_modal(self):
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertContains(resp, 'id="modal-confirmacion"')
+        self.assertContains(resp, 'data-confirmar=')
+        self.assertContains(resp, 'js/confirmar.js')
+        self.assertNotContains(resp, 'return confirm(')
