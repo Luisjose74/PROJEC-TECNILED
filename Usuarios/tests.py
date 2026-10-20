@@ -238,8 +238,8 @@ class PlantillasBaseTests(TestCase):
         # Debe usar la plantilla del panel y no la de la tienda
         self.assertTemplateUsed(resp, 'admin_base.html')
         self.assertTemplateNotUsed(resp, 'base.html')
-        # La miga de pan debe decir "Editar rol"
-        self.assertContains(resp, 'Editar rol')
+        # La miga de pan debe decir "Editar usuario"
+        self.assertContains(resp, 'Editar usuario')
         
     def test_menu_lateral_enlaza_a_proveedores(self):
         # El enlace "Proveedores" del menú lateral debe llevar a /proveedores/
@@ -396,3 +396,133 @@ class VerContrasenaTests(TestCase):
         resp = self.client.get(reverse('crear_usuario'))
         self.assertContains(resp, 'Mostrar contraseña')
         self.assertContains(resp, 'js/ver_contrasena.js')
+
+class UsuarioDetalleTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin_det@test.com', email='admin_det@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.usuario = Usuario.objects.create_user(
+            username='ver@test.com', email='ver@test.com', password='Prueba123!',
+            first_name='Ana', last_name='Perez', documento='555', rol=Usuario.Rol.CLIENTE,
+        )
+
+    def test_admin_ve_datos_rol_y_estado(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'ver@test.com')
+        self.assertContains(resp, '555')
+        self.assertContains(resp, 'Cliente')
+        self.assertContains(resp, 'Activa')
+
+    def test_usuario_inexistente_da_404(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse('usuario_detalle', args=[9999]))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_cliente_recibe_403(self):
+        self.client.force_login(self.usuario)
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_sin_sesion_va_al_login(self):
+        resp = self.client.get(reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.assertEqual(resp.status_code, 302)
+        
+class EditarUsuarioTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin@test.com', email='admin@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR)
+        self.otro = Usuario.objects.create_user(
+            username='otro@test.com', email='otro@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE, first_name='Ana')
+        self.client.force_login(self.admin)
+        self.url = reverse('editar_rol', args=[self.otro.id])
+
+    def datos(self, **extra):
+        d = {'first_name': 'Ana', 'last_name': 'Pérez', 'documento': '123',
+             'telefono': '3001234567', 'rol': 'cliente', 'estado_cuenta': 'activa'}
+        d.update(extra)
+        return d
+
+    def test_admin_actualiza_datos_permitidos(self):
+        r = self.client.post(self.url, self.datos(first_name='Ana María'))
+        self.assertRedirects(r, reverse('usuarios_lista'))
+        self.otro.refresh_from_db()
+        self.assertEqual(self.otro.first_name, 'Ana María')
+        self.assertEqual(self.otro.telefono, '3001234567')
+
+    def test_no_permite_cambiar_correo(self):
+        r = self.client.post(self.url, self.datos(email='hack@test.com'))
+        self.assertEqual(r.status_code, 200)
+        self.otro.refresh_from_db()
+        self.assertEqual(self.otro.email, 'otro@test.com')
+
+    def test_admin_no_puede_suspenderse_a_si_mismo(self):
+        url = reverse('editar_rol', args=[self.admin.id])
+        r = self.client.post(url, self.datos(rol='administrador', estado_cuenta='suspendida'))
+        self.assertEqual(r.status_code, 200)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.estado_cuenta, 'activa')
+
+
+class InactivarUsuarioTests(TestCase):
+    """G1-1174: inactivar la cuenta de un usuario."""
+
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin_inact@test.com', email='admin_inact@test.com',
+            password='Prueba123!', rol=Usuario.Rol.ADMINISTRADOR,
+        )
+        self.usuario = Usuario.objects.create_user(
+            username='victima@test.com', email='victima@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+        self.url = reverse('inactivar_usuario', args=[self.usuario.pk])
+
+    def test_admin_inactiva_usuario_activo_y_se_bloquea_su_acceso(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(self.url)
+        self.assertRedirects(resp, reverse('usuario_detalle', args=[self.usuario.pk]))
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.SUSPENDIDA)
+        # Acceso bloqueado: ya no puede iniciar sesión con su clave correcta
+        self.client.logout()
+        resp = self.client.post(reverse('login'), {'correo': 'victima@test.com', 'contrasena': 'Prueba123!'})
+        self.assertContains(resp, 'suspendida')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_no_se_puede_inactivar_dos_veces(self):
+        self.usuario.estado_cuenta = Usuario.EstadoCuenta.SUSPENDIDA
+        self.usuario.save()
+        self.client.force_login(self.admin)
+        resp = self.client.post(self.url, follow=True)
+        self.assertContains(resp, 'ya no está activa')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.SUSPENDIDA)
+
+    def test_admin_no_puede_inactivarse_a_si_mismo(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(reverse('inactivar_usuario', args=[self.admin.pk]), follow=True)
+        self.assertContains(resp, 'No puedes inactivar tu propia cuenta')
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.estado_cuenta, Usuario.EstadoCuenta.ACTIVA)
+
+    def test_cliente_recibe_403_y_no_inactiva(self):
+        otro = Usuario.objects.create_user(
+            username='otro@test.com', email='otro@test.com',
+            password='Prueba123!', rol=Usuario.Rol.CLIENTE,
+        )
+        self.client.force_login(otro)
+        resp = self.client.post(self.url)
+        self.assertEqual(resp.status_code, 403)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.estado_cuenta, Usuario.EstadoCuenta.ACTIVA)
+
+    def test_solo_acepta_post(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 405)

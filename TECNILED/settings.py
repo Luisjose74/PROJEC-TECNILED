@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'productos',
     'sistema',
     'ayuda',
+    'compras',
 ]
 
 MIDDLEWARE = [
@@ -112,9 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-co'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Bogota'
 
 USE_I18N = True
 
@@ -150,3 +151,8 @@ LOGIN_URL = 'login'
 # Archivos subidos por los usuarios (imágenes de productos)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# G1-123: cierre de sesión por inactividad
+SESSION_COOKIE_AGE = 60 * 30          # 30 minutos sin actividad
+SESSION_SAVE_EVERY_REQUEST = True     # cada petición reinicia el contador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

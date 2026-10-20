@@ -1,0 +1,91 @@
+{% extends 'admin_base.html' %}
+{% block title %}Detalle de usuario - TECNILED{% endblock %}
+{% block titulo_seccion %}Gestión de usuarios{% endblock %}
+{% block migas_actual %}Detalle de usuario{% endblock %}
+{% block content %}
+<div class="flex justify-center">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Detalle de usuario</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ usuario.email }}</p>
+      </div>
+      <a href="{% url 'usuarios_lista' %}" title="Volver al listado" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </a>
+    </div>
+
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Nombre</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.get_full_name|default:"Sin nombre" }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Correo</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.email }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Cédula</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.documento|default:"—" }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Teléfono</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.telefono|default:"—" }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Rol</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.get_rol_display }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Estado de la cuenta</dt>
+        <dd class="text-right">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+            {% if usuario.estado_cuenta == 'activa' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400
+            {% else %}bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400{% endif %}">
+            {{ usuario.get_estado_cuenta_display }}
+          </span>
+        </dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Miembro desde</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.date_joined|date:"d/m/Y" }}</dd>
+      </div>
+      <div class="flex justify-between gap-4">
+        <dt class="font-semibold text-gray-600 dark:text-gray-400">Último ingreso</dt>
+        <dd class="text-gray-900 dark:text-white text-right">{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</dd>
+      </div>
+    </dl>
+
+    <div class="flex flex-col gap-3 pt-6">
+      <!-- Fila principal de acciones -->
+      <div class="flex gap-3">
+        <a href="{% url 'usuarios_lista' %}" class="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-center">
+          Volver
+        </a>
+        
+        {% if usuario.estado_cuenta == 'activa' and usuario != request.user %}
+        <form method="post" action="{% url 'inactivar_usuario' usuario.id %}" class="flex-1"
+              onsubmit="return confirm('¿Seguro que quieres inactivar a {{ usuario.email|escapejs }}?');">
+          {% csrf_token %}
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors">
+            Inactivar usuario
+          </button>
+        </form>
+        {% elif usuario.estado_cuenta != 'activa' %}
+        <span class="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm font-bold text-center cursor-not-allowed">
+          Cuenta inactiva
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Botón de Editar -->
+      <div>
+        <a href="{% url 'editar_rol' usuario.id %}" class="w-full block py-2.5 rounded-xl bg-[#F2AE30] hover:bg-[#d99b28] text-white text-sm font-bold transition-colors shadow-lg shadow-[#F2AE30]/20 text-center">
+          Editar
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
