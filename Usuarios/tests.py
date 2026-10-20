@@ -569,3 +569,11 @@ class ModalConfirmacionTests(TestCase):
         self.assertContains(resp, 'data-confirmar=')
         self.assertContains(resp, 'js/confirmar.js')
         self.assertNotContains(resp, 'return confirm(')
+        
+class TipoDeMensajeTests(TestCase):
+    def test_recuperar_contrasena_muestra_aviso_informativo(self):
+        from django.contrib.messages import get_messages
+
+        resp = self.client.post(reverse('recuperar_contrasena'), {'correo': 'nadie@test.com'})
+        mensajes = list(get_messages(resp.wsgi_request))
+        self.assertEqual(mensajes[0].level_tag, 'info')

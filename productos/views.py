@@ -182,7 +182,7 @@ def inactivar_proveedor(request, pk):
         siguiente = reverse('proveedores_lista')
 
     if not proveedor.activo:
-        messages.error(request, f'El proveedor "{proveedor.nombre}" ya está inactivo.')
+        messages.warning(request, f'El proveedor "{proveedor.nombre}" ya está inactivo.')
         return redirect(siguiente)
 
     form = InactivarProveedorForm(request.POST)
@@ -209,7 +209,7 @@ def reactivar_proveedor(request, pk):
         siguiente = reverse('proveedores_lista')
 
     if proveedor.activo:
-        messages.error(request, f'El proveedor "{proveedor.nombre}" ya está activo.')
+        messages.warning(request, f'El proveedor "{proveedor.nombre}" ya está activo.')
         return redirect(siguiente)
 
     proveedor.reactivar()
