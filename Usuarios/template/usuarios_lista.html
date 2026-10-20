@@ -43,9 +43,9 @@
           <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
             <td class="p-4 font-medium text-gray-900 dark:text-white flex items-center gap-3">
               <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
-                {{ u.first_name|first|upper }}
+                {{ u.first_name|default:u.email|first|upper }}
               </div>
-              {{ u.first_name }} {{ u.last_name }}
+              {{ u.get_full_name|default:"Sin nombre" }}
             </td>
             <td class="p-4 text-gray-600 dark:text-gray-300">{{ u.email }}</td>
             <td class="p-4 text-gray-600 dark:text-gray-400">{{ u.documento|default:"—" }}</td>
