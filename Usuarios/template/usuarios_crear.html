@@ -1,15 +1,15 @@
 {% extends 'admin_base.html' %}
 {% load static %}
-{% block title %}Nuevo administrador - TECNILED{% endblock %}
+{% block title %}Nuevo usuario - TECNILED{% endblock %}
 {% block titulo_seccion %}Gestión de usuarios{% endblock %}
-{% block migas_actual %}Nuevo administrador{% endblock %}
+{% block migas_actual %}Nuevo usuario{% endblock %}
 {% block content %}
 <div class="flex justify-center">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
 
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nuevo administrador</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nuevo usuario</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Crea una cuenta interna y asigna su rol</p>
       </div>
       <a href="{% url 'usuarios_lista' %}" title="Cerrar" aria-label="Cerrar" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
@@ -81,7 +81,7 @@
           Cancelar
         </a>
         <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#F2AE30] hover:bg-[#d99b28] text-black text-sm font-bold transition-colors shadow-lg shadow-[#F2AE30]/20">
-          Crear administrador
+          Crear usuario
         </button>
       </div>
     </form>

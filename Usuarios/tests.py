@@ -224,7 +224,7 @@ class PlantillasBaseTests(TestCase):
         resp = self.client.get(reverse('crear_usuario'))
         self.assertTemplateUsed(resp, 'admin_base.html')
         self.assertTemplateNotUsed(resp, 'base.html')
-        self.assertContains(resp, 'Nuevo administrador')
+        self.assertContains(resp, 'Nuevo usuario')
                 
     def test_usuarios_editar_rol_usa_admin_base(self):
         # Usuaria a la que el administrador le va a editar el rol
