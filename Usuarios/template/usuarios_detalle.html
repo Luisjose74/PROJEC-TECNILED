@@ -11,7 +11,7 @@
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Detalle de usuario</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ usuario.email }}</p>
       </div>
-      <a href="{% url 'usuarios_lista' %}" title="Volver al listado" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
+      <a href="{% url 'usuarios_lista' %}" title="Volver al listado" aria-label="Volver al listado" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </a>
     </div>
