@@ -79,7 +79,7 @@
     
       {% if perms.sistema.gestionar_respaldos %}
       <a href="{% url 'respaldos_lista' %}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all {% if nombre == 'respaldos_lista' or nombre == 'respaldos_restaurar' %}bg-[#F2AE30] text-black shadow-md shadow-[#F2AE30]/20{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50{% endif %}">
-        <svg aria-hidden="true" class="w-5 h-5 {% if nombre == 'respaldos_lista' or nombre == 'respaldos_restaurar' %}text-black{% else %}text-gray-400 dark:text-gray-500{% endif %}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+        <svg aria-hidden="true" class="w-5 h-5 {% if nombre == 'respaldos_lista' or nombre == 'respaldos_restaurar' %}text-black{% else %}text-gray-400 dark:text-gray-500{% endif %}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" ><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
         Copias de seguridad
       </a>
       {% endif %}
@@ -116,7 +116,7 @@
 
       <div class="flex items-center gap-4">
         {# Campana: solo visual. El punto rojo y el desplegable se activan cuando exista el sistema de notificaciones #}
-        <<button type="button" aria-label="Notificaciones" title="Notificaciones" class="p-2 text-gray-500 hover:text-[#F2AE30] hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors relative">
+        <button type="button" aria-label="Notificaciones" title="Notificaciones" class="p-2 text-gray-500 hover:text-[#F2AE30] hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors relative">
           <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         </button>
 
@@ -135,14 +135,21 @@
     <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
       <div class="max-w-7xl mx-auto">
 
-        <div class="flex items-center gap-2 mb-5">
-          <a href="{% url 'inicio' %}" class="flex items-center gap-1.5 text-sm font-medium text-gray-400 dark:text-gray-500 hover:text-[#F2AE30] dark:hover:text-[#F2AE30] transition-colors group">
-            <svg aria-hidden="true" class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-            Inicio
-          </a>
-          <span class="text-gray-300 dark:text-gray-600">/</span>
-          <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">{% block migas_actual %}{% endblock %}</span>
-        </div>
+        <nav aria-label="Migas de pan" class="mb-5">
+          <ol class="flex flex-wrap items-center gap-2 text-sm">
+            <li>
+              <a href="{% url 'inicio' %}" class="flex items-center gap-1.5 font-medium text-gray-400 dark:text-gray-500 hover:text-[#F2AE30] dark:hover:text-[#F2AE30] transition-colors group">
+                <svg class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                Inicio
+              </a>
+            </li>
+            {% block migas_intermedias %}{% endblock %}
+            <li class="flex items-center gap-2" aria-current="page">
+              <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">/</span>
+              <span class="font-semibold text-gray-700 dark:text-gray-200">{% block migas_actual %}{% endblock %}</span>
+            </li>
+          </ol>
+        </nav>
 
         {% if messages %}
         <div class="mb-4 space-y-2">

@@ -1,6 +1,10 @@
 {% extends 'admin_base.html' %}
 {% block title %}Restaurar respaldo - TECNILED{% endblock %}
 {% block titulo_seccion %}Copias de seguridad{% endblock %}
+{% block migas_intermedias %}
+{% url 'respaldos_lista' as url_lista %}
+{% include 'partials/miga.html' with enlace=url_lista texto='Copias de seguridad' %}
+{% endblock %}
 {% block migas_actual %}Restaurar respaldo{% endblock %}
 {% block content %}
 <div class="flex justify-center">
