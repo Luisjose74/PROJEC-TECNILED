@@ -70,3 +70,104 @@ Para acciones irreversibles (inactivar, restaurar, eliminar):
 `bg-red-600 hover:bg-red-700 text-white`.
 
 **Regla:** no usar `bg-red-500` con texto blanco: no cumple el contraste mínimo.
+
+---
+
+## 2. Tipografía
+
+### 2.1 Fuente
+
+Se usa la fuente **sans-serif del sistema** que trae Tailwind (`font-sans`):
+Segoe UI en Windows, San Francisco en Mac y Roboto en Android.
+No se cargan fuentes externas, así la página carga más rápido.
+
+### 2.2 Tamaños
+
+| Elemento | Clases | Ejemplo en el proyecto |
+|---|---|---|
+| Título de la sección (encabezado del panel) | `text-xl md:text-2xl font-bold text-gray-900 dark:text-white` | "Gestión de usuarios" |
+| Título de tarjeta o modal | `text-xl font-bold text-gray-900 dark:text-white` | "Nuevo administrador", "Detalle de usuario" |
+| Subtítulo o descripción | `text-sm text-gray-500 dark:text-gray-400` | "Crea una cuenta interna y asigna su rol" |
+| Texto normal | `text-sm text-gray-600 dark:text-gray-300` | Celdas de las tablas |
+| Etiqueta de formulario | `text-xs font-semibold text-gray-600 dark:text-gray-400` | "Nombre *", "Correo electrónico *" |
+| Texto pequeño (ayudas, errores) | `text-xs` | "El correo no se puede modificar." |
+
+### 2.3 Mayúsculas
+
+Solo la **primera letra** del texto va en mayúscula, en títulos, botones y etiquetas:
+"Agregar administrador", "Precio normal", "Estado de la cuenta".
+No se escribe "Agregar Administrador" ni "PRECIO NORMAL".
+
+---
+
+## 3. Componentes
+
+### 3.1 Botones
+
+| Tipo | Cuándo se usa | Clases |
+|---|---|---|
+| Principal | La acción principal de la pantalla (Guardar, Crear) | `px-4 py-2.5 rounded-xl bg-[#F2AE30] hover:bg-[#d99b28] text-black text-sm font-bold transition-colors` |
+| Secundario | Cancelar, Volver | `px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors` |
+| Peligro | Acciones irreversibles (Inactivar, Restaurar) | `px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors` |
+| Solo icono | Acciones de las tablas (editar, ver) | `p-2 rounded-lg transition-colors` + `title="..."` y `aria-label="..."` |
+
+**Reglas:**
+- Una pantalla tiene **un solo botón principal**.
+- Los botones de peligro de un formulario llevan `data-confirmar="¿Pregunta?"`
+  para que aparezca el modal de confirmación (historia G1-1193).
+- Un botón que solo tiene icono **siempre** lleva `title` y `aria-label` (historia G1-1194).
+
+### 3.2 Tarjetas y modales
+
+```html
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+  ...
+</div>
+```
+
+Los formularios centrados (crear, editar) usan `shadow-2xl w-full max-w-md`.
+
+### 3.3 Formularios
+
+Todos los campos usan la misma clase. En los formularios de Django se pone en el `__init__`
+(ver `Usuarios/forms.py`):
+
+```
+w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900
+text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F2AE30] outline-none
+```
+
+- La etiqueta va encima del campo con la clase de "Etiqueta de formulario" (sección 2.2).
+- Los campos obligatorios llevan un asterisco en la etiqueta: "Nombre *".
+- El error va debajo del campo: `<p class="text-xs text-red-500 mt-1">`.
+
+### 3.4 Tablas
+
+| Parte | Clases |
+|---|---|
+| Encabezado | `bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 text-sm` |
+| Celda | `p-4` |
+| Fila al pasar el mouse | `hover:bg-gray-50/50 dark:hover:bg-gray-800/50` |
+| Sin resultados | Una fila con `colspan` y el texto "No se encontraron ..." |
+
+### 3.5 Iconos
+
+- Se usan iconos SVG de línea (estilo *Lucide*), de `w-4 h-4` a `w-6 h-6`, con `stroke="currentColor"`
+  para que tomen el color del texto.
+- **Todo** `<svg>` lleva `aria-hidden="true"`: el significado lo da el texto o el `aria-label` del botón.
+- La prueba `IconosConDescripcionTests` (en `Usuarios/tests.py`) revisa esto en todas las plantillas.
+
+### 3.6 Mensajes y confirmaciones
+
+- Mensajes: `{% include 'partials/mensajes.html' %}` (ya está en `base.html` y `admin_base.html`).
+  En la vista se usa `messages.success`, `messages.error`, `messages.warning` o `messages.info`
+  según la tabla de la sección 1.4.
+- Confirmación: agrega `data-confirmar="¿Seguro que...?"` al `<form>`.
+  El modal está en `partials/modal_confirmacion.html` y su lógica en `static/js/confirmar.js`.
+
+### 3.7 Logo
+
+- Archivo: `static/img/logo_tecniled.png` (bombillo naranja con la palabra "LED", fondo transparente).
+- Se ve bien en modo claro y en modo oscuro, por eso no necesita otra versión.
+- Va siempre acompañado del nombre **TECNILED** en texto, en negrita (`font-black` o `font-bold`).
+- No se deforma: usar `object-contain` y no cambiar sus colores.
