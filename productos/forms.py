@@ -19,13 +19,13 @@ class ProductoForm(forms.ModelForm):
             'nombre': 'Título',
             'categoria': 'Categoría',
             'proveedor': 'Proveedor',
-            'precio': 'Precio Normal',
-            'precio_oferta': 'Precio de Oferta',
-            'stock': 'Stock Disponible',
+            'precio': 'Precio normal',
+            'precio_oferta': 'Precio de oferta',
+            'stock': 'Existencias disponibles',
             'imagen': 'Imagen',
-            'descripcion': 'Descripción Corta',
-            'instalacion': 'Uso e Instalación',
-            'especificaciones': 'Características Técnicas',  # NUEVO
+            'descripcion': 'Descripción corta',
+            'instalacion': 'Uso e instalación',
+            'especificaciones': 'Características técnicas',  # NUEVO
         }
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 2}),

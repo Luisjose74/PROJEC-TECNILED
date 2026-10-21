@@ -60,7 +60,7 @@ def crear_producto(request):
 @permission_required('Usuarios.gestionar_inventario', raise_exception=True)
 @require_POST
 def alternar_destacado(request, producto_id):
-    """Activa/desactiva 'Destacado en Inicio' (interruptor verde de la tabla)."""
+    """Activa/desactiva ''Destacado en inicio' (interruptor verde de la tabla)."""
     producto = get_object_or_404(Producto, pk=producto_id)
     producto.destacado_en_inicio = not producto.destacado_en_inicio
     producto.save(update_fields=['destacado_en_inicio', 'actualizado_en'])
