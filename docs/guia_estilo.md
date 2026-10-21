@@ -171,3 +171,26 @@ text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F2AE30] outline-
 - Se ve bien en modo claro y en modo oscuro, por eso no necesita otra versión.
 - Va siempre acompañado del nombre **TECNILED** en texto, en negrita (`font-black` o `font-bold`).
 - No se deforma: usar `object-contain` y no cambiar sus colores.
+
+### 3.8 Variables y clases de `static/css/style.css`
+
+Los colores principales también están como **variables CSS**, para usarlos en CSS propio:
+
+| Variable | Valor |
+|---|---|
+| `--color-primario` | `#F2AE30` |
+| `--color-primario-hover` | `#d99b28` |
+| `--color-texto-sobre-primario` | `#000000` |
+| `--color-texto` / `--color-texto-secundario` | Cambian solos en modo oscuro |
+| `--color-fondo` / `--color-fondo-suave` / `--color-borde` | Cambian solos en modo oscuro |
+| `--color-exito` / `--color-error` / `--color-advertencia` / `--color-informacion` | Colores de alerta |
+| `--color-peligro` | `#DC2626` (`red-600`) |
+
+Uso: `color: var(--color-primario);`
+
+**Clases reutilizables de botones** (equivalen a las de la sección 3.1):
+`btn-principal`, `btn-secundario` y `btn-peligro`.
+
+```html
+<button type="submit" class="btn-principal">Guardar cambios</button>
+```
