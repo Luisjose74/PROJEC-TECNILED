@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.core.serializers import python
 from django.test import override_settings
 from django.utils import timezone
 from Usuarios.models import CodigoRecuperacion
@@ -570,6 +571,7 @@ class ModalConfirmacionTests(TestCase):
         self.assertContains(resp, 'js/confirmar.js')
         self.assertNotContains(resp, 'return confirm(')
         
+        
 class TipoDeMensajeTests(TestCase):
     def test_recuperar_contrasena_muestra_aviso_informativo(self):
         from django.contrib.messages import get_messages
@@ -577,3 +579,40 @@ class TipoDeMensajeTests(TestCase):
         resp = self.client.post(reverse('recuperar_contrasena'), {'correo': 'nadie@test.com'})
         mensajes = list(get_messages(resp.wsgi_request))
         self.assertEqual(mensajes[0].level_tag, 'info')
+        
+
+class IconosConDescripcionTests(TestCase):
+    """G1-1194: revisa todas las plantillas del proyecto."""
+
+    def plantillas(self):
+        from pathlib import Path
+        from django.conf import settings
+
+        carpeta = Path(settings.BASE_DIR)
+        for archivo in carpeta.rglob('*.html'):
+            if 'venv' not in archivo.parts:
+                yield archivo, archivo.read_text(encoding='utf-8')
+
+    def test_todos_los_iconos_son_decorativos(self):
+        import re
+
+        for archivo, texto in self.plantillas():
+            for svg in re.findall(r'<svg\b[^>]*>', texto):
+                self.assertIn('aria-hidden="true"', svg, f'{archivo.name}: {svg[:60]}')
+
+    def test_botones_solo_con_icono_tienen_descripcion(self):
+        import re
+
+        patron = re.compile(r'<(a|button)\b([^>]*)>(.*?)</\1>', re.S)
+        for archivo, texto in self.plantillas():
+            for etiqueta in patron.finditer(texto):
+                atributos, contenido = etiqueta.group(2), etiqueta.group(3)
+                if '<svg' not in contenido:
+                    continue
+                sin_iconos = re.sub(r'<svg.*?</svg>', '', contenido, flags=re.S)
+                texto_visible = re.sub(r'<[^>]+>', '', sin_iconos)
+                texto_visible = re.sub(r'{%.*?%}|{{.*?}}', 'x', texto_visible).strip()
+                if texto_visible:
+                    continue
+                self.assertIn('aria-label=', atributos, f'{archivo.name}: {atributos[:60]}')
+                self.assertIn('title=', atributos, f'{archivo.name}: {atributos[:60]}')
