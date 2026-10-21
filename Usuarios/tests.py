@@ -616,3 +616,23 @@ class IconosConDescripcionTests(TestCase):
                     continue
                 self.assertIn('aria-label=', atributos, f'{archivo.name}: {atributos[:60]}')
                 self.assertIn('title=', atributos, f'{archivo.name}: {atributos[:60]}')
+                
+                
+class ContrasteTests(TestCase):
+    """G1-1208: combinaciones de color que no cumplen el contraste mínimo (4.5:1)."""
+
+    def test_no_hay_texto_blanco_sobre_amarillo_ni_sobre_rojo_500(self):
+        import re
+        from pathlib import Path
+        from django.conf import settings
+
+        for archivo in Path(settings.BASE_DIR).rglob('*.html'):
+            if 'venv' in archivo.parts:
+                continue
+            texto = archivo.read_text(encoding='utf-8')
+            for clases in re.findall(r'class="([^"]*)"', texto):
+                lista = clases.split()
+                if 'text-white' not in lista:
+                    continue
+                self.assertNotIn('bg-[#F2AE30]', lista, f'{archivo.name}: texto blanco sobre amarillo')
+                self.assertNotIn('bg-red-500', lista, f'{archivo.name}: texto blanco sobre red-500')

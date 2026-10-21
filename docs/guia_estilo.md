@@ -194,3 +194,47 @@ Uso: `color: var(--color-primario);`
 ```html
 <button type="submit" class="btn-principal">Guardar cambios</button>
 ```
+
+---
+
+## 4. Contraste (WCAG AA)
+
+El texto debe tener un contraste de **al menos 4.5:1** con su fondo (nivel AA de WCAG).
+Las medidas se hicieron con la fórmula de WebAIM Contrast Checker
+(https://webaim.org/resources/contrastchecker/).
+
+### 4.1 Combinaciones aprobadas
+
+| Texto | Fondo | Contraste | Uso |
+|---|---|---|---|
+| Negro `#000000` | Amarillo `#F2AE30` | 10.87:1 ✅ | Botón principal |
+| Negro `#000000` | Amarillo hover `#d99b28` | 8.67:1 ✅ | Botón principal al pasar el mouse |
+| Amarillo `#F2AE30` | `gray-900` `#111827` | 9.18:1 ✅ | Textos destacados en modo oscuro |
+| `gray-900` `#111827` | Blanco | 17.74:1 ✅ | Títulos y texto principal |
+| `gray-500` `#6B7280` | Blanco | 4.83:1 ✅ | Texto secundario |
+| `gray-500` `#6B7280` | `gray-50` `#F9FAFB` | 4.63:1 ✅ | Texto secundario en el panel |
+| `gray-400` `#9CA3AF` | `gray-800` `#1F2937` | 5.78:1 ✅ | Texto secundario en modo oscuro |
+| Blanco | `red-600` `#DC2626` | 4.83:1 ✅ | Botón de peligro |
+| `emerald-700` | `emerald-50` | 5.21:1 ✅ | Mensaje de éxito |
+| `red-700` | `red-50` | 5.91:1 ✅ | Mensaje de error |
+| `amber-800` | `amber-50` | 6.84:1 ✅ | Mensaje de advertencia |
+| `blue-700` | `blue-50` | 6.16:1 ✅ | Mensaje de información |
+
+### 4.2 Combinaciones prohibidas
+
+| Texto | Fondo | Contraste | Qué usar en su lugar |
+|---|---|---|---|
+| Blanco | Amarillo `#F2AE30` | 1.93:1 ❌ | Texto negro (`text-black`) |
+| Blanco | Amarillo hover `#d99b28` | 2.42:1 ❌ | Texto negro (`text-black`) |
+| Amarillo `#F2AE30` | Blanco | 1.93:1 ❌ | No usar el amarillo para texto sobre fondo blanco; usarlo en fondos, bordes e iconos |
+| Blanco | `red-500` `#EF4444` | 3.76:1 ❌ | Fondo `red-600` |
+| `gray-400` `#9CA3AF` | Blanco | 2.54:1 ❌ | `gray-500` para textos que se deben leer |
+
+### 4.3 Correcciones hechas (G1-1208)
+
+- 5 botones amarillos pasaron de texto blanco a **texto negro**: *Agregar administrador*,
+  *Crear administrador*, *Guardar cambios*, *Editar* (detalle de usuario) y el carrito de la tienda.
+- 6 elementos rojos pasaron de `red-500` a **`red-600`**: *Inactivar usuario*, *Inactivar proveedor*,
+  *Restaurar*, *Sí, continuar* (modal), la etiqueta *Oferta* y el contador del carrito.
+- La prueba `ContrasteTests` (en `Usuarios/tests.py`) revisa que no vuelvan a aparecer
+  texto blanco sobre amarillo ni sobre `red-500`.
