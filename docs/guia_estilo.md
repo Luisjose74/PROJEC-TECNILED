@@ -238,3 +238,48 @@ Las medidas se hicieron con la fórmula de WebAIM Contrast Checker
   *Restaurar*, *Sí, continuar* (modal), la etiqueta *Oferta* y el contador del carrito.
 - La prueba `ContrasteTests` (en `Usuarios/tests.py`) revisa que no vuelvan a aparecer
   texto blanco sobre amarillo ni sobre `red-500`.
+
+  ---
+
+## 5. Lista de revisión para pantallas nuevas
+
+Antes de abrir un Pull Request con una pantalla nueva o modificada, revisa:
+
+**Estructura**
+- [ ] La plantilla hereda de `base.html` (tienda) o de `admin_base.html` (panel).
+- [ ] En el panel, llena los bloques `title`, `titulo_seccion` y `migas_actual`.
+
+**Colores y contraste**
+- [ ] Usa solo los colores de la sección 1.
+- [ ] Sobre el amarillo `#F2AE30` el texto es negro.
+- [ ] Los botones de peligro usan `bg-red-600`.
+- [ ] Funciona en modo claro y en modo oscuro (cada color tiene su versión `dark:`).
+
+**Componentes**
+- [ ] Hay un solo botón principal (amarillo) por pantalla.
+- [ ] Los campos de formulario usan la clase de la sección 3.3.
+- [ ] Las acciones irreversibles piden confirmación con `data-confirmar`.
+- [ ] Los mensajes usan el tipo correcto (`success`, `error`, `warning` o `info`).
+
+**Iconos y accesibilidad**
+- [ ] Todo `<svg>` lleva `aria-hidden="true"`.
+- [ ] Todo botón que solo tiene icono lleva `title` y `aria-label`.
+
+**Textos**
+- [ ] Todo está en español, sin palabras en inglés visibles para el usuario.
+- [ ] Solo la primera letra en mayúscula en títulos, botones y etiquetas.
+- [ ] Sin errores de ortografía ni tildes faltantes.
+
+**Pruebas**
+- [ ] `python manage.py test` pasa. Las pruebas `IconosConDescripcionTests` y `ContrasteTests`
+      revisan automáticamente los iconos y el contraste de todas las plantillas.
+
+---
+
+## 6. Cómo actualizar esta guía
+
+- La guía vive en `docs/guia_estilo.md`, dentro del repositorio, y cambia junto con el código.
+- Si se agrega un color o un componente nuevo, se documenta aquí **en el mismo Pull Request**.
+- Si cambia un color principal, se actualiza también la variable en `static/css/style.css`
+  (sección 3.8).
+- En GitHub la guía se ve con formato: abre la carpeta `docs` y haz clic en `guia_estilo.md`.
