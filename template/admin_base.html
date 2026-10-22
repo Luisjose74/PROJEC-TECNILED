@@ -60,11 +60,21 @@
         <svg class="w-5 h-5 {% if nombre == 'productos_lista' or nombre == 'crear_producto' or nombre == 'editar_producto' %}text-black{% else %}text-gray-400 dark:text-gray-500{% endif %}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
         Gestión de productos
       </a>
+
+      
       <a href="{% url 'categorias_lista' %}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all {% if nombre == 'categorias_lista' %}bg-[#F2AE30] text-black shadow-md shadow-[#F2AE30]/20{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50{% endif %}">
         <svg class="w-5 h-5 {% if nombre == 'categorias_lista' %}text-black{% else %}text-gray-400 dark:text-gray-500{% endif %}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
         Gestión de categorías
       </a>
+
+      <a href="{% url 'entradas_lista' %}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all {% if nombre == 'entradas_lista' %}bg-[#F2AE30] text-black shadow-md shadow-[#F2AE30]/20{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50{% endif %}">
+        <svg class="w-5 h-5 {% if nombre == 'entradas_lista' %}text-black{% else %}text-gray-400 dark:text-gray-500{% endif %}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        Entradas de inventario
+      </a>
+      
       {% endif %}
+
+
 
       {% if perms.Usuarios.gestionar_compras %}
       <a href="#" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
