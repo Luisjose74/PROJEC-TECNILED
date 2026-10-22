@@ -15,4 +15,8 @@ urlpatterns = [
     path('proveedores/<int:pk>/editar/', views.editar_proveedor, name='editar_proveedor'),
     path('proveedores/<int:pk>/inactivar/', views.inactivar_proveedor, name='inactivar_proveedor'),
     path('proveedores/<int:pk>/reactivar/', views.reactivar_proveedor, name='reactivar_proveedor'),
+        # G1-151: categorías
+    path('categorias/', views.categorias_lista, name='categorias_lista'),
+    path('categorias/crear/', views.crear_categoria, name='crear_categoria'),
+    path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
 ]

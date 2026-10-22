@@ -9,7 +9,7 @@ from django.urls import reverse
 from PIL import Image
 
 from Usuarios.models import Usuario
-from productos.models import Producto
+from productos.models import Categoria, Producto
 
 from productos.models import Proveedor
 
@@ -39,11 +39,14 @@ def crear_usuario(correo, rol):
         username=correo, email=correo, password='Prueba123!', rol=rol
     )
 
+def categoria(nombre):
+    """Devuelve la categoría con ese nombre (las 4 iniciales las crea la migración)."""
+    return Categoria.objects.get_or_create(nombre=nombre)[0]
 
 def crear_producto_bd(**overrides):
     datos = {
         'sku': 'E1', 'nombre': 'Cable THW Calibre 12',
-        'categoria': Producto.Categoria.ELECTRICOS, 'precio': '45.00', 'stock': 50,
+        'categoria': categoria('Eléctricos'), 'precio': '45.00', 'stock': 50,
         'descripcion': 'Cable de cobre.', 'instalacion': 'Pelar los extremos.',
     }
     datos.update(overrides)
@@ -53,14 +56,16 @@ def crear_producto_bd(**overrides):
 class ProductoModeloTests(TestCase):
     def test_precio_oferta_menor_al_precio_es_valido(self):
         p = Producto(
-            sku='M1', nombre='X', precio='15.50', precio_oferta='12.00', stock=1,
+            categoria=categoria('Eléctricos'), sku='M1', nombre='X',
+            precio='15.50', precio_oferta='12.00', stock=1,
             descripcion='d', instalacion='i',
         )
         p.full_clean()  # no debe lanzar excepción
 
     def test_precio_oferta_mayor_o_igual_al_precio_es_invalido(self):
         p = Producto(
-            sku='M2', nombre='X', precio='10.00', precio_oferta='10.00', stock=1,
+            categoria=categoria('Eléctricos'), sku='M2', nombre='X',
+            precio='10.00', precio_oferta='10.00', stock=1,
             descripcion='d', instalacion='i',
         )
         with self.assertRaises(ValidationError) as ctx:
@@ -84,7 +89,7 @@ class RegistrarProductoTests(TestCase):
     def datos_validos(self, **overrides):
         datos = {
             'sku': 'E1', 'nombre': 'Cable THW Calibre 12',
-            'categoria': Producto.Categoria.ELECTRICOS,
+            'categoria': categoria('Eléctricos').pk,
             'precio': '45.00', 'precio_oferta': '', 'stock': '50',
             'descripcion': 'Cable de cobre suave.', 'instalacion': 'Pelar los extremos.',
         }
@@ -168,7 +173,7 @@ class CargarImagenTests(TestCase):
     def datos(self, **overrides):
         datos = {
             'sku': 'I1', 'nombre': 'Lámpara Colgante Moderna',
-            'categoria': Producto.Categoria.INTERIORES,
+            'categoria': categoria('Interiores').pk,
             'precio': '65.00', 'precio_oferta': '', 'stock': '8',
             'descripcion': 'Lámpara.', 'instalacion': 'Colgar del techo.',
         }
@@ -210,7 +215,7 @@ class BuscarProductosTests(TestCase):
         crear_producto_bd(sku='E1', nombre='Cable THW Calibre 12')
         crear_producto_bd(
             sku='I1', nombre='Lámpara Colgante Moderna',
-            categoria=Producto.Categoria.INTERIORES,
+            categoria=categoria('Interiores'),
         )
         self.client.force_login(self.admin)
 
@@ -238,7 +243,7 @@ class BuscarProductosTests(TestCase):
         self.assertContains(resp, 'Lámpara Colgante Moderna')
 
     def test_filtro_por_categoria(self):
-        resp = self.client.get(reverse('productos_lista'), {'categoria': 'interiores'})
+        resp = self.client.get(reverse('productos_lista'), {'categoria': categoria('Interiores').pk})
         self.assertContains(resp, 'Lámpara Colgante Moderna')
         self.assertNotContains(resp, 'Cable THW Calibre 12')
 
@@ -249,7 +254,7 @@ class BuscarProductosTests(TestCase):
 
     def test_busqueda_y_categoria_se_combinan(self):
         resp = self.client.get(
-            reverse('productos_lista'), {'q': 'Cable', 'categoria': 'interiores'}
+            reverse('productos_lista'), {'q': 'Cable', 'categoria': categoria('Interiores').pk}
         )
         self.assertContains(resp, 'No se encontraron productos.')
 
@@ -663,3 +668,61 @@ class ReactivarProveedorTests(TestCase):
         self.assertEqual(self.client.post(self.url).status_code, 302)
         self.proveedor.refresh_from_db()
         self.assertFalse(self.proveedor.activo)
+
+class CategoriaTests(TestCase):
+    """G1-151: crear y editar categorías."""
+
+    def setUp(self):
+        self.client.force_login(crear_usuario('cat@t.com', Usuario.Rol.ADMINISTRADOR))
+
+    def test_lista_muestra_categorias_y_cantidad_de_productos(self):
+        crear_producto_bd(sku='C1', nombre='Uno')
+        r = self.client.get(reverse('categorias_lista'))
+        self.assertContains(r, 'Eléctricos')
+        self.assertContains(r, '1 producto\n')
+
+    def test_crear_categoria_limpia_espacios(self):
+        r = self.client.post(reverse('crear_categoria'), {'nombre': '  Herramientas   manuales '})
+        self.assertRedirects(r, reverse('categorias_lista'))
+        self.assertTrue(Categoria.objects.filter(nombre='Herramientas manuales').exists())
+
+    def test_crear_con_errores_no_guarda_y_reabre_el_modal(self):
+        for dato, mensaje in [('', 'obligatorio'), ('a', 'al menos 2'), ('x' * 61, '60 caracteres'),
+                              ('ELÉCTRICOS', 'Ya existe')]:
+            cantidad = Categoria.objects.count()
+            r = self.client.post(reverse('crear_categoria'), {'nombre': dato})
+            self.assertContains(r, mensaje)
+            self.assertContains(r, 'data-abrir="crear"')
+            self.assertEqual(Categoria.objects.count(), cantidad)
+
+    def test_editar_categoria_y_el_producto_conserva_el_vinculo(self):
+        c = categoria('Eléctricos')
+        p = crear_producto_bd(sku='C2')
+        r = self.client.post(reverse('editar_categoria', args=[c.pk]), {'nombre': 'Eléctricos plus'})
+        self.assertRedirects(r, reverse('categorias_lista'))
+        p.refresh_from_db()
+        self.assertEqual(p.get_categoria_display(), 'Eléctricos plus')
+
+    def test_editar_con_su_mismo_nombre_es_valido_pero_con_el_de_otra_no(self):
+        c = categoria('Interiores')
+        r = self.client.post(reverse('editar_categoria', args=[c.pk]), {'nombre': 'Interiores'})
+        self.assertRedirects(r, reverse('categorias_lista'))
+        r = self.client.post(reverse('editar_categoria', args=[c.pk]), {'nombre': 'ferretería'})
+        self.assertContains(r, 'Ya existe')
+
+    def test_categoria_nueva_se_asigna_a_un_producto_y_filtra(self):
+        self.client.post(reverse('crear_categoria'), {'nombre': 'Seguridad'})
+        c = Categoria.objects.get(nombre='Seguridad')
+        self.client.post(reverse('crear_producto'), {
+            'sku': 'S1', 'nombre': 'Cámara', 'categoria': c.pk, 'precio': '10',
+            'stock': '1', 'descripcion': 'd', 'instalacion': 'i',
+        })
+        self.assertContains(self.client.get(reverse('productos_lista'), {'categoria': c.pk}), 'Cámara')
+        self.assertNotContains(
+            self.client.get(reverse('productos_lista'), {'categoria': categoria('Interiores').pk}), 'Cámara')
+
+    def test_solo_post_y_permisos(self):
+        self.assertEqual(self.client.get(reverse('crear_categoria')).status_code, 405)
+        self.client.force_login(crear_usuario('cli@t.com', Usuario.Rol.CLIENTE))
+        self.assertEqual(self.client.get(reverse('categorias_lista')).status_code, 403)
+        self.assertEqual(self.client.post(reverse('crear_categoria'), {'nombre': 'Hack'}).status_code, 403)

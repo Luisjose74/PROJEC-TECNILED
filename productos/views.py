@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
-from django.db.models import Q, Value
 from django.db.models.functions import Replace
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from .models import Categoria, Producto, Proveedor
 
-from .forms import InactivarProveedorForm, ProductoForm, ProveedorEditarForm, ProveedorForm
-from .models import Producto, Proveedor
+from django.db.models import Count, Q, Value
+from .forms import CategoriaForm, InactivarProveedorForm, ProductoForm, ProveedorEditarForm, ProveedorForm
 
 
 @login_required
@@ -18,15 +18,16 @@ def productos_lista(request):
     query = request.GET.get('q', '').strip()
     categoria = request.GET.get('categoria', '').strip()
 
-    productos = Producto.objects.select_related('proveedor')
+    productos = Producto.objects.select_related('proveedor', 'categoria')
 
     if query:
         productos = productos.filter(
             Q(nombre__icontains=query) | Q(sku__icontains=query)
         )
 
-    if categoria in Producto.Categoria.values:
-        productos = productos.filter(categoria=categoria)
+        # G1-151: el filtro llega con el id de la categoría (se ignora si no existe)
+    if categoria.isdigit() and Categoria.objects.filter(pk=categoria).exists():
+        productos = productos.filter(categoria_id=categoria)
     else:
         categoria = ''  # valor manipulado en la URL: se ignora
 
@@ -37,7 +38,7 @@ def productos_lista(request):
         'productos': pagina,
         'query': query,
         'categoria': categoria,
-        'categorias': Producto.Categoria.choices,
+        'categorias': Categoria.objects.all(),
     })
 
 
@@ -268,3 +269,51 @@ def reactivar_proveedor(request, pk):
     proveedor.reactivar()
     messages.success(request, f'Proveedor "{proveedor.nombre}" reactivado correctamente.')
     return redirect(siguiente)
+
+# ---------------------------------------------------------------------------
+# G1-151: gestión de categorías
+# ---------------------------------------------------------------------------
+def _render_categorias(request, form, modal_abierto='', categoria_editada=None):
+    """Dibuja la lista; si hubo un error al guardar, la plantilla reabre el modal con el error."""
+    query = request.GET.get('q', '').strip()
+    categorias = Categoria.objects.annotate(total_productos=Count('productos'))
+    if query:
+        categorias = categorias.filter(nombre__icontains=query)
+    return render(request, 'productos/categorias_lista.html', {
+        'categorias': categorias,
+        'query': query,
+        'form': form,
+        'modal_abierto': modal_abierto,        # '', 'crear' o 'editar'
+        'categoria_editada': categoria_editada,
+    })
+
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+def categorias_lista(request):
+    return _render_categorias(request, CategoriaForm())
+
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+@require_POST
+def crear_categoria(request):
+    form = CategoriaForm(request.POST)
+    if form.is_valid():
+        categoria = form.save()
+        messages.success(request, f'Categoría "{categoria.nombre}" creada correctamente.')
+        return redirect('categorias_lista')
+    return _render_categorias(request, form, modal_abierto='crear')
+
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+@require_POST
+def editar_categoria(request, pk):
+    categoria = get_object_or_404(Categoria, pk=pk)
+    form = CategoriaForm(request.POST, instance=categoria)
+    if form.is_valid():
+        categoria = form.save()
+        messages.success(request, f'Categoría "{categoria.nombre}" actualizada correctamente.')
+        return redirect('categorias_lista')
+    return _render_categorias(request, form, modal_abierto='editar', categoria_editada=categoria)

@@ -40,13 +40,22 @@ class Proveedor(models.Model):
         self.save(update_fields=['activo', 'motivo_inactivacion', 'fecha_actualizacion'])
 
 
+class Categoria(models.Model):
+    """G1-151: categorías para clasificar productos (se crean y editan desde el panel)."""
+    nombre = models.CharField('Nombre', max_length=60, unique=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['nombre']
+        verbose_name = 'Categoría'
+        verbose_name_plural = 'Categorías'
+
+    def __str__(self):
+        return self.nombre
+    
+
+
 class Producto(models.Model):
-    class Categoria(models.TextChoices):
-        # Mismos 4 valores que el <select name="category"> del diseño (AdminDashboard.tsx)
-        ELECTRICOS = 'electricos', 'Eléctricos'
-        INTERIORES = 'interiores', 'Interiores'
-        FERRETERIA = 'ferreteria', 'Ferretería'
-        ILUMINACION = 'iluminacion', 'Iluminación'
 
     # --- Identificación ---
     sku = models.CharField(
@@ -56,7 +65,8 @@ class Producto(models.Model):
     nombre = models.CharField('Título', max_length=150)
 
     # --- Clasificación y precio (campos del formulario del diseño) ---
-    categoria = models.CharField(max_length=20, choices=Categoria.choices, default=Categoria.ELECTRICOS)
+        # PROTECT: no se puede borrar una categoría que todavía tiene productos
+    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='productos')
     proveedor = models.ForeignKey(
         Proveedor, on_delete=models.PROTECT,
         null=True, blank=True, related_name='productos',
@@ -93,6 +103,10 @@ class Producto(models.Model):
 
     def __str__(self):
         return f'{self.sku} - {self.nombre}'
+
+    def get_categoria_display(self):
+        """Compatibilidad: inicio.html, producto_detalle.html y la lista siguen usando este nombre."""
+        return self.categoria.nombre
 
     def porcentaje_descuento(self):
         """Devuelve el % de descuento (ej: 23) o 0 si no tiene oferta."""

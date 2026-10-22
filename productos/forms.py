@@ -1,9 +1,9 @@
 from django import forms
 
-from .models import Producto, Proveedor
 from django.db.models import Q
 from django.core.files.uploadedfile import UploadedFile
 import re
+from .models import Categoria, Producto, Proveedor
 
 
 class ProductoForm(forms.ModelForm):
@@ -27,7 +27,10 @@ class ProductoForm(forms.ModelForm):
             'instalacion': 'Uso e Instalación',
             'especificaciones': 'Características Técnicas',  
         }
+        
                 # G1-147: mensajes de error en español (el proyecto está en en-us)
+
+        
         error_messages = {
             'sku': {
                 'required': 'El código (SKU) es obligatorio.',
@@ -101,6 +104,8 @@ class ProductoForm(forms.ModelForm):
         self.fields['proveedor'].queryset = Proveedor.objects.filter(
             Q(activo=True) | Q(pk=self.instance.proveedor_id)
         )
+        
+        self.fields['categoria'].empty_label = 'Selecciona una categoría'
                 # G1-147: el navegador también avisa antes de enviar (el servidor es la validación real)
         self.fields['precio'].widget.attrs['min'] = '0.01'
         self.fields['precio_oferta'].widget.attrs['min'] = '0.01'
@@ -243,3 +248,39 @@ class InactivarProveedorForm(forms.Form):
             'max_length': 'El motivo no puede superar los 500 caracteres.',
         },
     )
+
+
+class CategoriaForm(forms.ModelForm):
+    """G1-151: crear y editar categorías (un solo campo: el nombre)."""
+
+    class Meta:
+        model = Categoria
+        fields = ['nombre']
+        labels = {'nombre': 'Nombre de la categoría'}
+        widgets = {'nombre': forms.TextInput(attrs={'placeholder': 'Ej: Iluminación exterior'})}
+        error_messages = {
+            'nombre': {
+                'required': 'El nombre de la categoría es obligatorio.',
+                'max_length': 'El nombre no puede superar los 60 caracteres.',
+                'unique': 'Ya existe una categoría con este nombre.',
+            },
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nombre'].widget.attrs['class'] = (
+            'w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 '
+            'rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none '
+            'focus:ring-2 focus:ring-[#F2AE30]'
+        )
+
+    def clean_nombre(self):
+        nombre = ' '.join((self.cleaned_data.get('nombre') or '').split())  # quita espacios dobles
+        if len(nombre) < 2:
+            raise forms.ValidationError('El nombre debe tener al menos 2 caracteres.')
+        # Duplicado sin distinguir mayúsculas ni tildes de mayúscula (se compara en Python
+        # porque SQLite no ignora mayúsculas en letras con tilde). Al editar se ignora a sí misma.
+        otros = Categoria.objects.exclude(pk=self.instance.pk).values_list('nombre', flat=True)
+        if any(otro.casefold() == nombre.casefold() for otro in otros):
+            raise forms.ValidationError('Ya existe una categoría con este nombre.')
+        return nombre
