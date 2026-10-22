@@ -19,4 +19,7 @@ urlpatterns = [
     path('categorias/', views.categorias_lista, name='categorias_lista'),
     path('categorias/crear/', views.crear_categoria, name='crear_categoria'),
     path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
+        # G1-149: entradas de inventario
+    path('inventario/entradas/', views.entradas_lista, name='entradas_lista'),
+    path('inventario/entradas/registrar/', views.registrar_entrada, name='registrar_entrada'),
 ]
