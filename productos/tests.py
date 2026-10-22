@@ -9,16 +9,13 @@ from django.urls import reverse
 from PIL import Image
 
 from Usuarios.models import Usuario
-from productos.models import Categoria, Producto
-
 from productos.models import Proveedor
 
-
 from datetime import timedelta
-
 from django.utils import timezone
-
 from productos.forms import ProductoForm
+
+from productos.models import Categoria, MovimientoInventario, Producto
 
 # Las imágenes de los tests se guardan aquí y se borran al terminar
 MEDIA_TEMPORAL = tempfile.mkdtemp()
@@ -726,3 +723,75 @@ class CategoriaTests(TestCase):
         self.client.force_login(crear_usuario('cli@t.com', Usuario.Rol.CLIENTE))
         self.assertEqual(self.client.get(reverse('categorias_lista')).status_code, 403)
         self.assertEqual(self.client.post(reverse('crear_categoria'), {'nombre': 'Hack'}).status_code, 403)
+
+
+
+class EntradaInventarioTests(TestCase):
+    """G1-149: registrar entradas de mercancía."""
+
+    def setUp(self):
+        self.usuario = crear_usuario('ent@t.com', Usuario.Rol.ADMINISTRADOR)
+        self.client.force_login(self.usuario)
+        self.p = crear_producto_bd(sku='E1', nombre='Foco', stock=10)
+
+    def registrar(self, **cambios):
+        datos = {'producto': self.p.pk, 'cantidad': '5', 'observacion': ''}
+        datos.update(cambios)
+        return self.client.post(reverse('registrar_entrada'), datos)
+
+    def test_la_entrada_suma_al_stock_y_queda_en_el_historial(self):
+        r = self.registrar(observacion='  Factura   1  ')
+        self.assertRedirects(r, reverse('entradas_lista'))
+        self.p.refresh_from_db()
+        self.assertEqual(self.p.stock, 15)
+        m = MovimientoInventario.objects.get()
+        self.assertEqual((m.cantidad, m.stock_resultante, m.tipo, m.usuario, m.observacion),
+                         (5, 15, 'entrada', self.usuario, 'Factura 1'))
+        r = self.client.get(reverse('entradas_lista'))
+        self.assertContains(r, '+5')
+        self.assertContains(r, 'ent@t.com')
+
+    def test_dos_entradas_seguidas_acumulan(self):
+        self.registrar(cantidad='5')
+        self.registrar(cantidad='3')
+        self.p.refresh_from_db()
+        self.assertEqual(self.p.stock, 18)
+
+    def test_datos_invalidos_no_cambian_el_stock_y_reabren_el_modal(self):
+        casos = [
+            ({'cantidad': '0'}, 'mayor a 0'), ({'cantidad': '-3'}, 'mayor a 0'),
+            ({'cantidad': 'abc'}, 'número entero'), ({'cantidad': ''}, 'Indica la cantidad'),
+            ({'cantidad': '1.5'}, 'número entero'), ({'cantidad': '100001'}, 'no puede superar 100.000'),
+            ({'producto': ''}, 'Selecciona el producto'), ({'producto': '9999'}, 'producto válido'),
+            ({'observacion': 'x' * 201}, '200 caracteres'),
+        ]
+        for cambio, mensaje in casos:
+            r = self.registrar(**cambio)
+            self.assertContains(r, mensaje)
+            self.assertContains(r, 'data-abrir="si"')
+        self.p.refresh_from_db()
+        self.assertEqual(self.p.stock, 10)
+        self.assertEqual(MovimientoInventario.objects.count(), 0)
+
+    def test_un_producto_inactivo_no_recibe_entradas(self):
+        Producto.objects.filter(pk=self.p.pk).update(activo=False)
+        self.assertNotContains(self.client.get(reverse('entradas_lista')), 'Foco (SKU')
+        self.assertContains(self.registrar(), 'producto válido')
+        self.assertEqual(MovimientoInventario.objects.count(), 0)
+        with self.assertRaises(ValueError):
+            MovimientoInventario.registrar_entrada(self.p, 3)
+
+    def test_permisos_y_metodos(self):
+        self.assertEqual(self.client.get(reverse('registrar_entrada')).status_code, 405)
+        self.client.force_login(crear_usuario('inv@t.com', Usuario.Rol.CONTROL_INVENTARIO))
+        self.assertEqual(self.client.get(reverse('entradas_lista')).status_code, 200)
+        self.client.force_login(crear_usuario('cli2@t.com', Usuario.Rol.CLIENTE))
+        self.assertEqual(self.client.get(reverse('entradas_lista')).status_code, 403)
+        self.assertEqual(self.registrar().status_code, 403)
+
+    def test_busqueda_y_paginacion_del_historial(self):
+        for _ in range(12):
+            MovimientoInventario.registrar_entrada(self.p, 1, self.usuario)
+        self.assertContains(self.client.get(reverse('entradas_lista')), 'Página 1 de 2')
+        self.assertContains(self.client.get(reverse('entradas_lista'), {'q': 'E1'}), 'Foco')
+        self.assertNotContains(self.client.get(reverse('entradas_lista'), {'q': 'zzz'}), 'Foco</p>')
