@@ -3,7 +3,8 @@ from django import forms
 from django.db.models import Q
 from django.core.files.uploadedfile import UploadedFile
 import re
-from .models import Categoria, Producto, Proveedor
+
+from .models import Categoria, MovimientoInventario, Producto, Proveedor
 
 
 class ProductoForm(forms.ModelForm):
@@ -284,3 +285,53 @@ class CategoriaForm(forms.ModelForm):
         if any(otro.casefold() == nombre.casefold() for otro in otros):
             raise forms.ValidationError('Ya existe una categoría con este nombre.')
         return nombre
+
+
+class EntradaInventarioForm(forms.Form):
+    """G1-149: registrar la llegada de mercancía (producto + cantidad)."""
+    MAX_CANTIDAD = 100000
+
+    producto = forms.ModelChoiceField(
+        queryset=Producto.objects.none(),
+        label='Producto',
+        empty_label='Selecciona un producto',
+        error_messages={
+            'required': 'Selecciona el producto que ingresó.',
+            'invalid_choice': 'Selecciona un producto válido de la lista.',
+        },
+    )
+    cantidad = forms.IntegerField(
+        label='Cantidad recibida',
+        min_value=1,
+        max_value=MAX_CANTIDAD,
+        error_messages={
+            'required': 'Indica la cantidad recibida.',
+            'invalid': 'La cantidad debe ser un número entero.',
+            'min_value': 'La cantidad debe ser mayor a 0.',
+            'max_value': f'La cantidad no puede superar {MAX_CANTIDAD:,} unidades por entrada.'.replace(',', '.'),
+        },
+    )
+    observacion = forms.CharField(
+        label='Observación (opcional)',
+        max_length=200,
+        required=False,
+        error_messages={'max_length': 'La observación no puede superar los 200 caracteres.'},
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo productos activos: un producto inactivo está retirado de la operación (G1-146)
+        self.fields['producto'].queryset = Producto.objects.filter(activo=True).order_by('nombre')
+        self.fields['producto'].label_from_instance = lambda p: f'{p.nombre} (SKU {p.sku}) · stock actual: {p.stock}'
+        clase_input = (
+            'w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 '
+            'rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none '
+            'focus:ring-2 focus:ring-[#F2AE30]'
+        )
+        for campo in self.fields.values():
+            campo.widget.attrs['class'] = clase_input
+        self.fields['cantidad'].widget.attrs.update({'min': '1', 'max': str(self.MAX_CANTIDAD), 'placeholder': 'Ej: 25'})
+        self.fields['observacion'].widget.attrs['placeholder'] = 'Ej: Factura 1234 del proveedor'
+
+    def clean_observacion(self):
+        return ' '.join((self.cleaned_data.get('observacion') or '').split())

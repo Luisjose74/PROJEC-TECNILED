@@ -6,11 +6,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-from .models import Categoria, Producto, Proveedor
 
 from django.db.models import Count, Q, Value
-from .forms import CategoriaForm, InactivarProveedorForm, ProductoForm, ProveedorEditarForm, ProveedorForm
 
+from .forms import CategoriaForm, EntradaInventarioForm, InactivarProveedorForm, ProductoForm, ProveedorEditarForm, ProveedorForm
+from .models import Categoria, MovimientoInventario, Producto, Proveedor
 
 @login_required
 @permission_required('Usuarios.gestionar_inventario', raise_exception=True)
@@ -317,3 +317,54 @@ def editar_categoria(request, pk):
         messages.success(request, f'Categoría "{categoria.nombre}" actualizada correctamente.')
         return redirect('categorias_lista')
     return _render_categorias(request, form, modal_abierto='editar', categoria_editada=categoria)
+
+
+
+# ---------------------------------------------------------------------------
+# G1-149: entradas de inventario
+# ---------------------------------------------------------------------------
+def _render_entradas(request, form, abrir_modal=False):
+    """Dibuja el historial de entradas; si hubo un error, la plantilla reabre el modal."""
+    query = request.GET.get('q', '').strip()
+    movimientos = MovimientoInventario.objects.filter(
+        tipo=MovimientoInventario.Tipo.ENTRADA
+    ).select_related('producto', 'usuario')
+    if query:
+        movimientos = movimientos.filter(Q(producto__nombre__icontains=query) | Q(producto__sku__icontains=query))
+    pagina = Paginator(movimientos, 10).get_page(request.GET.get('page'))
+    return render(request, 'productos/entradas_lista.html', {
+        'movimientos': pagina,
+        'query': query,
+        'form': form,
+        'abrir_modal': abrir_modal,
+    })
+
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+def entradas_lista(request):
+    return _render_entradas(request, EntradaInventarioForm())
+
+
+@login_required
+@permission_required('Usuarios.gestionar_inventario', raise_exception=True)
+@require_POST
+def registrar_entrada(request):
+    form = EntradaInventarioForm(request.POST)
+    if form.is_valid():
+        producto = form.cleaned_data['producto']
+        cantidad = form.cleaned_data['cantidad']
+        try:
+            movimiento = MovimientoInventario.registrar_entrada(
+                producto, cantidad, usuario=request.user, observacion=form.cleaned_data['observacion'],
+            )
+        except ValueError as error:  # p. ej. el producto se inactivó justo antes de guardar
+            form.add_error(None, str(error))
+        else:
+            messages.success(
+                request,
+                f'Entrada registrada: +{cantidad} unidades de "{producto.nombre}". '
+                f'Stock actual: {movimiento.stock_resultante}.'
+            )
+            return redirect('entradas_lista')
+    return _render_entradas(request, form, abrir_modal=True)
