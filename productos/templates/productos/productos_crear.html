@@ -1,5 +1,5 @@
 {% extends 'admin_base.html' %}
-{% block title %}Registrar producto - TECNILED{% endblock %}
+{% block title %}{% if producto %}Editar producto{% else %}Registrar producto{% endif %} - TECNILED{% endblock %}
 {% block titulo_seccion %}Gestión de productos{% endblock %}
 {% block migas_intermedias %}
 {% url 'productos_lista' as url_lista %}
@@ -10,9 +10,9 @@
 <div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-xl mx-auto shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col">
 
   <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center shrink-0">
-    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Agregar producto</h3>
-    <a href="{% url 'productos_lista' %}" title="Cerrar" aria-label="Cerrar" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-      <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    <h3 class="text-xl font-bold text-gray-900 dark:text-white">{% if producto %}Editar Producto{% else %}Añadir Nuevo Producto{% endif %}</h3>
+    <a href="{% url 'productos_lista' %}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
     </a>
   </div>
 
@@ -69,12 +69,12 @@
         <div class="flex items-center justify-center w-full">
           <label for="{{ form.imagen.id_for_label }}" id="dropzone-label"
                  class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 transition-colors">
-            <div class="flex flex-col items-center justify-center pt-5 pb-6" id="dropzone-placeholder">
-              <svg aria-hidden="true" class="w-8 h-8 text-gray-500 dark:text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <div class="flex flex-col items-center justify-center pt-5 pb-6{% if producto.imagen %} hidden{% endif %}" id="dropzone-placeholder">
+              <svg class="w-8 h-8 text-gray-500 dark:text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               <p class="text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Haz clic para subir</span> o arrastra y suelta</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG o WEBP</p>
             </div>
-            <img id="preview-imagen" src="" alt="Vista previa de la imagen del producto" class="hidden w-full h-full object-cover rounded-xl" />
+            <img id="preview-imagen" src="{% if producto.imagen %}{{ producto.imagen.url }}{% endif %}" alt="Vista previa de la imagen del producto" class="{% if not producto.imagen %}hidden {% endif %}w-full h-full object-cover rounded-xl" />
           </label>
         </div>
         {{ form.imagen }}
